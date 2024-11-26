@@ -1,0 +1,27 @@
+{
+  "env": "testnet",
+  "main": "@modules/module1",
+  "assets": "@modules/assets",
+  "bundle": true,
+  "moduleDir": "modules",
+  "modules": {
+    "@modules/assets": {
+      "path": "assets"
+    },
+    "@modules/module1": {
+      "path": "module1"
+    }
+  },
+  "dependencies": {
+    "@scom/scom-shopping-cart": "*"
+  },
+  "menus": [
+  ],
+  "routes": [
+    {
+      "url": "/module1",
+      "module": "@modules/module1",
+      "default": true
+    }
+  ]
+}
