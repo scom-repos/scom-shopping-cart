@@ -4,7 +4,7 @@ import formSchema from './formSchema';
 
 export class Model {
   private module: Module;
-  private data: IShoppingCart = { products: [] };
+  private data: IShoppingCart = { title: '', products: [] };
   updateWidget: () => void;
 
   constructor(module: Module) {
@@ -21,12 +21,28 @@ export class Model {
   }
 
   get currency() {
-    if (!this.data.currency || this.data.currency.toUpperCase() === 'USD') return '$$';
+    if (!this.data.currency) return 'USD';
     return this.data.currency;
   }
 
   set currency(value: string) {
     this.data.currency = value;
+  }
+
+  get currencyText() {
+    return this.currency.toUpperCase() === 'USD' ? '$$' : this.currency.toUpperCase();
+  }
+
+  get title() {
+    return this.data.title || '';
+  }
+
+  set title(value: string) {
+    this.data.title = value;
+  }
+
+  get totalPrice() {
+    return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
   }
 
   getData() {
@@ -68,7 +84,7 @@ export class Model {
         name: 'Edit',
         icon: 'edit',
         command: (builder: any, userInputData: any) => {
-          let oldData: IShoppingCart = { products: [] };
+          let oldData: IShoppingCart = { title: '', products: [] };
           return {
             execute: () => {
               oldData = JSON.parse(JSON.stringify(this.data));
@@ -88,4 +104,28 @@ export class Model {
     return actions;
   }
 
+  addProduct(product: IProduct) {
+    this.data.products.push(product);
+  }
+
+  addProducts(products: IProduct[]) {
+    this.data.products.push(...products);
+  }
+
+  removeProduct(id: string | number) {
+    const idx = this.products.findIndex(v => v.id == id);
+    if (idx > -1) {
+      this.data.products.splice(idx, 1);
+    }
+  }
+
+  updateQuantity(id: string | number, quantity: number) {
+    const idx = this.products.findIndex(v => v.id == id);
+    if (idx > -1) {
+      this.data.products[idx] = {
+        ...this.data.products[idx],
+        quantity: quantity
+      };
+    }
+  }
 }

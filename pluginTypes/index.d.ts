@@ -6,10 +6,12 @@ declare module "@scom/scom-shopping-cart/index.css.ts" {
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
 declare module "@scom/scom-shopping-cart/interface.ts" {
     export interface IShoppingCart {
+        title: string;
         products: IProduct[];
         currency?: string;
     }
     export interface IProduct {
+        id: string | number;
         name: string;
         description?: string;
         image: string;
@@ -24,11 +26,19 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
         dataSchema: {
             type: string;
             properties: {
+                title: {
+                    type: string;
+                    required: boolean;
+                };
                 products: {
                     type: string;
                     items: {
                         type: string;
                         properties: {
+                            id: {
+                                type: string;
+                                required: boolean;
+                            };
                             name: {
                                 type: string;
                                 required: boolean;
@@ -57,7 +67,11 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
         };
         uiSchema: {
             type: string;
-            elements: {
+            elements: ({
+                type: string;
+                scope: string;
+                options?: undefined;
+            } | {
                 type: string;
                 scope: string;
                 options: {
@@ -65,7 +79,7 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
                         type: string;
                     };
                 };
-            }[];
+            })[];
         };
     };
     export default _default;
@@ -83,6 +97,10 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         set products(value: IProduct[]);
         get currency(): string;
         set currency(value: string);
+        get currencyText(): string;
+        get title(): string;
+        set title(value: string);
+        get totalPrice(): number;
         getData(): IShoppingCart;
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
@@ -101,11 +119,19 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                 userInputDataSchema: {
                     type: string;
                     properties: {
+                        title: {
+                            type: string;
+                            required: boolean;
+                        };
                         products: {
                             type: string;
                             items: {
                                 type: string;
                                 properties: {
+                                    id: {
+                                        type: string;
+                                        required: boolean;
+                                    };
                                     name: {
                                         type: string;
                                         required: boolean;
@@ -134,7 +160,11 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                 };
                 userInputUISchema: {
                     type: string;
-                    elements: {
+                    elements: ({
+                        type: string;
+                        scope: string;
+                        options?: undefined;
+                    } | {
                         type: string;
                         scope: string;
                         options: {
@@ -142,7 +172,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                                 type: string;
                             };
                         };
-                    }[];
+                    })[];
                 };
             }[];
             getData: any;
@@ -151,6 +181,10 @@ declare module "@scom/scom-shopping-cart/model.ts" {
             setTag: any;
         }[];
         private _getActions;
+        addProduct(product: IProduct): void;
+        addProducts(products: IProduct[]): void;
+        removeProduct(id: string | number): void;
+        updateQuantity(id: string | number, quantity: number): void;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart" />
@@ -158,7 +192,9 @@ declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
     import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
     interface ScomShoppingCartElement extends ControlElement {
+        title?: string;
         products?: IProduct[];
+        currency?: string;
         onPaymentSuccess?: (status: string) => void;
     }
     global {
@@ -181,6 +217,8 @@ declare module "@scom/scom-shopping-cart" {
         get products(): IProduct[];
         set products(value: IProduct[]);
         get currency(): string;
+        get title(): string;
+        get totalPrice(): number;
         getConfigurators(): {
             name: string;
             target: string;
@@ -195,11 +233,19 @@ declare module "@scom/scom-shopping-cart" {
                 userInputDataSchema: {
                     type: string;
                     properties: {
+                        title: {
+                            type: string;
+                            required: boolean;
+                        };
                         products: {
                             type: string;
                             items: {
                                 type: string;
                                 properties: {
+                                    id: {
+                                        type: string;
+                                        required: boolean;
+                                    };
                                     name: {
                                         type: string;
                                         required: boolean;
@@ -228,7 +274,11 @@ declare module "@scom/scom-shopping-cart" {
                 };
                 userInputUISchema: {
                     type: string;
-                    elements: {
+                    elements: ({
+                        type: string;
+                        scope: string;
+                        options?: undefined;
+                    } | {
                         type: string;
                         scope: string;
                         options: {
@@ -236,7 +286,7 @@ declare module "@scom/scom-shopping-cart" {
                                 type: string;
                             };
                         };
-                    }[];
+                    })[];
                 };
             }[];
             getData: any;
@@ -248,6 +298,10 @@ declare module "@scom/scom-shopping-cart" {
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
         setTag(value: any): Promise<void>;
+        addProduct(product: IProduct): void;
+        addProducts(products: IProduct[]): void;
+        removeProduct(id: string | number): void;
+        updateQuantity(id: string | number, quantity: number): void;
         private renderProducts;
         private handleCheckout;
         private initModel;

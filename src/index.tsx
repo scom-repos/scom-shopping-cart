@@ -18,7 +18,9 @@ import { Model } from './model';
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomShoppingCartElement extends ControlElement {
+    title?: string;
     products?: IProduct[];
+    currency?: string;
     onPaymentSuccess?: (status: string) => void;
 }
 
@@ -65,6 +67,14 @@ export default class ScomShoppingCart extends Module {
         return this.model.currency;
     }
 
+    get title() {
+        return this.model.title;
+    }
+
+    get totalPrice() {
+        return this.model.totalPrice;
+    }
+
     getConfigurators() {
         this.initModel();
         return this.model.getConfigurators();
@@ -84,6 +94,26 @@ export default class ScomShoppingCart extends Module {
 
     async setTag(value: any) {
         this.model.setTag(value);
+    }
+
+    addProduct(product: IProduct) {
+        this.model.addProduct(product);
+        this.renderProducts();
+    }
+
+    addProducts(products: IProduct[]) {
+        this.model.addProducts(products);
+        this.renderProducts();
+    }
+
+    removeProduct(id: string | number) {
+        this.model.removeProduct(id);
+        this.renderProducts();
+    }
+
+    updateQuantity(id: string | number, quantity: number) {
+        this.model.updateQuantity(id, quantity);
+        this.renderProducts();
     }
 
     private renderProducts() {
@@ -127,7 +157,12 @@ export default class ScomShoppingCart extends Module {
                 iconPlus.cursor = _quantity === available ? 'default' : 'pointer';
                 iconPlus.enabled = _quantity < available;
                 lbQuantity.caption = FormatUtils.formatNumber(_quantity, { hasTrailingZero: false, decimalFigures: 0 });
-                this.lbTotal.caption = `${this.currency} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`
+                this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                const idx = this.products.findIndex(v => v.id == product.id);
+                this.products[idx] = {
+                    ...product,
+                    quantity: _quantity
+                }
             }
             iconMinus.onClick = () => {
                 if (_quantity === 1) return;
@@ -148,6 +183,17 @@ export default class ScomShoppingCart extends Module {
                 _quantity = _quantity + 1;
                 total = total + price;
                 updateQuantity();
+            }
+            const handleDelete = () => {
+                const idx = this.products.findIndex(v => v.id == product.id);
+                this.products.splice(idx, 1);
+                if (this.products.length) {
+                    this.pnlProducts.removeChild(item);
+                    total = total - (_quantity * price);
+                    this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                } else {
+                    this.renderProducts();
+                }
             }
             const item = (
                 <i-hstack
@@ -179,7 +225,8 @@ export default class ScomShoppingCart extends Module {
                         <i-label caption={description} font={{ color: Theme.text.hint, size: '0.8125rem' }} class={textEllipsis} />
                     </i-vstack>
                     <i-vstack gap="0.5rem" minWidth={80} margin={{ left: 'auto' }}>
-                        <i-label caption={`${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 2 })}`} font={{ bold: true }} margin={{ left: 'auto' }} class={textRight} />
+                        <i-icon name="trash" fill={Theme.colors.error.main} width={16} height={16} cursor="pointer" margin={{ left: 'auto' }} onClick={handleDelete.bind(this)} />
+                        <i-label caption={`${this.model.currencyText} ${FormatUtils.formatNumber(price, { decimalFigures: 2 })}`} font={{ bold: true }} margin={{ left: 'auto' }} class={textRight} />
                         <i-hstack gap="0.5rem" verticalAlignment="center" horizontalAlignment="end">
                             {iconMinus}
                             {lbQuantity}
@@ -192,7 +239,7 @@ export default class ScomShoppingCart extends Module {
         }
         this.pnlProducts.clearInnerHTML();
         this.pnlProducts.append(...nodeItems);
-        this.lbTotal.caption = `${this.currency} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+        this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
     }
 
     private handleCheckout() {
@@ -211,9 +258,11 @@ export default class ScomShoppingCart extends Module {
         this.onPaymentSuccess = this.getAttribute('onPaymentSuccess', true) || this.onPaymentSuccess;
         const lazyLoad = this.getAttribute('lazyLoad', true, false);
         if (!lazyLoad) {
+            const title = this.getAttribute('title', true);
+            const currency = this.getAttribute('currency', true);
             const products = this.getAttribute('products', true);
             if (products) {
-                this.setData({ products });
+                this.setData({ title, products, currency });
             }
         }
     }
