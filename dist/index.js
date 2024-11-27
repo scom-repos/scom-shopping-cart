@@ -31,11 +31,19 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
         dataSchema: {
             type: 'object',
             properties: {
+                title: {
+                    type: 'string',
+                    required: true
+                },
                 products: {
                     type: 'array',
                     items: {
                         type: 'object',
                         properties: {
+                            id: {
+                                type: 'string',
+                                required: true,
+                            },
                             name: {
                                 type: 'string',
                                 required: true
@@ -67,6 +75,10 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
             elements: [
                 {
                     type: 'Control',
+                    scope: '#/properties/title'
+                },
+                {
+                    type: 'Control',
                     scope: '#/properties/products',
                     options: {
                         detail: {
@@ -84,7 +96,7 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
     exports.Model = void 0;
     class Model {
         constructor(module) {
-            this.data = { products: [] };
+            this.data = { title: '', products: [] };
             this.module = module;
         }
         get products() {
@@ -95,12 +107,24 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
             this.updateWidget();
         }
         get currency() {
-            if (!this.data.currency || this.data.currency.toUpperCase() === 'USD')
-                return '$$';
+            if (!this.data.currency)
+                return 'USD';
             return this.data.currency;
         }
         set currency(value) {
             this.data.currency = value;
+        }
+        get currencyText() {
+            return this.currency.toUpperCase() === 'USD' ? '$$' : this.currency.toUpperCase();
+        }
+        get title() {
+            return this.data.title || '';
+        }
+        set title(value) {
+            this.data.title = value;
+        }
+        get totalPrice() {
+            return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
         }
         getData() {
             return this.data;
@@ -136,7 +160,7 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
                     name: 'Edit',
                     icon: 'edit',
                     command: (builder, userInputData) => {
-                        let oldData = { products: [] };
+                        let oldData = { title: '', products: [] };
                         return {
                             execute: () => {
                                 oldData = JSON.parse(JSON.stringify(this.data));
@@ -156,6 +180,27 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
                 }
             ];
             return actions;
+        }
+        addProduct(product) {
+            this.data.products.push(product);
+        }
+        addProducts(products) {
+            this.data.products.push(...products);
+        }
+        removeProduct(id) {
+            const idx = this.products.findIndex(v => v.id == id);
+            if (idx > -1) {
+                this.data.products.splice(idx, 1);
+            }
+        }
+        updateQuantity(id, quantity) {
+            const idx = this.products.findIndex(v => v.id == id);
+            if (idx > -1) {
+                this.data.products[idx] = {
+                    ...this.data.products[idx],
+                    quantity: quantity
+                };
+            }
         }
     }
     exports.Model = Model;
@@ -184,6 +229,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         get currency() {
             return this.model.currency;
         }
+        get title() {
+            return this.model.title;
+        }
+        get totalPrice() {
+            return this.model.totalPrice;
+        }
         getConfigurators() {
             this.initModel();
             return this.model.getConfigurators();
@@ -199,6 +250,22 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         }
         async setTag(value) {
             this.model.setTag(value);
+        }
+        addProduct(product) {
+            this.model.addProduct(product);
+            this.renderProducts();
+        }
+        addProducts(products) {
+            this.model.addProducts(products);
+            this.renderProducts();
+        }
+        removeProduct(id) {
+            this.model.removeProduct(id);
+            this.renderProducts();
+        }
+        updateQuantity(id, quantity) {
+            this.model.updateQuantity(id, quantity);
+            this.renderProducts();
         }
         renderProducts() {
             if (!this.pnlProducts)
@@ -235,7 +302,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     iconPlus.cursor = _quantity === available ? 'default' : 'pointer';
                     iconPlus.enabled = _quantity < available;
                     lbQuantity.caption = components_2.FormatUtils.formatNumber(_quantity, { hasTrailingZero: false, decimalFigures: 0 });
-                    this.lbTotal.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                    this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                    const idx = this.products.findIndex(v => v.id == product.id);
+                    this.products[idx] = {
+                        ...product,
+                        quantity: _quantity
+                    };
                 };
                 iconMinus.onClick = () => {
                     if (_quantity === 1)
@@ -259,6 +331,18 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     total = total + price;
                     updateQuantity();
                 };
+                const handleDelete = () => {
+                    const idx = this.products.findIndex(v => v.id == product.id);
+                    this.products.splice(idx, 1);
+                    if (this.products.length) {
+                        this.pnlProducts.removeChild(item);
+                        total = total - (_quantity * price);
+                        this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                    }
+                    else {
+                        this.renderProducts();
+                    }
+                };
                 const item = (this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, wrap: "wrap" },
                     this.$render("i-panel", { width: 100, height: "auto", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' } },
                         this.$render("i-image", { url: image, width: "100%", height: "auto", maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
@@ -266,7 +350,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                         this.$render("i-label", { caption: name, font: { bold: true } }),
                         this.$render("i-label", { caption: description, font: { color: Theme.text.hint, size: '0.8125rem' }, class: index_css_1.textEllipsis })),
                     this.$render("i-vstack", { gap: "0.5rem", minWidth: 80, margin: { left: 'auto' } },
-                        this.$render("i-label", { caption: `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 2 })}`, font: { bold: true }, margin: { left: 'auto' }, class: index_css_1.textRight }),
+                        this.$render("i-icon", { name: "trash", fill: Theme.colors.error.main, width: 16, height: 16, cursor: "pointer", margin: { left: 'auto' }, onClick: handleDelete.bind(this) }),
+                        this.$render("i-label", { caption: `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 2 })}`, font: { bold: true }, margin: { left: 'auto' }, class: index_css_1.textRight }),
                         this.$render("i-hstack", { gap: "0.5rem", verticalAlignment: "center", horizontalAlignment: "end" },
                             iconMinus,
                             lbQuantity,
@@ -275,7 +360,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             }
             this.pnlProducts.clearInnerHTML();
             this.pnlProducts.append(...nodeItems);
-            this.lbTotal.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+            this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
         }
         handleCheckout() {
             console.log('handleCheckout');
@@ -291,9 +376,11 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.onPaymentSuccess = this.getAttribute('onPaymentSuccess', true) || this.onPaymentSuccess;
             const lazyLoad = this.getAttribute('lazyLoad', true, false);
             if (!lazyLoad) {
+                const title = this.getAttribute('title', true);
+                const currency = this.getAttribute('currency', true);
                 const products = this.getAttribute('products', true);
                 if (products) {
-                    this.setData({ products });
+                    this.setData({ title, products, currency });
                 }
             }
         }

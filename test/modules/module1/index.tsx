@@ -59,8 +59,10 @@ export default class Module1 extends Module {
                     <i-button caption="Config" onClick={this.onShowConfig} width={160} padding={{ top: 5, bottom: 5 }} margin={{ left: 'auto', right: 20 }} font={{ color: '#fff' }} />
                     <i-scom-shopping-cart
                         id="scomShoppingCart"
+                        title="Mix Products"
                         products={[
                             {
+                                id: 1,
                                 name: 'Canon minimal',
                                 description: 'Black fujifilm DSLR camera',
                                 image: 'https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
@@ -69,6 +71,7 @@ export default class Module1 extends Module {
                                 available: 20
                             },
                             {
+                                id: 2,
                                 name: 'Lens',
                                 description: 'Selective focus photography of disassembled camera telephoto lens',
                                 image: 'https://images.pexels.com/photos/279906/pexels-photo-279906.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
@@ -77,6 +80,7 @@ export default class Module1 extends Module {
                                 available: 10
                             },
                             {
+                                id: 3,
                                 name: 'Venus mascara',
                                 description: 'Venus HD Make-up',
                                 image: 'https://images.pexels.com/photos/2697787/pexels-photo-2697787.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
