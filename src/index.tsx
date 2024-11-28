@@ -243,9 +243,10 @@ export default class ScomShoppingCart extends Module {
                     border={{ radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }}
                     wrap="wrap"
                 >
-                    <i-panel
+                    <i-vstack
                         width={100}
                         height="auto"
+                        horizontalAlignment="center"
                         background={{ color: Theme.text.primary }}
                         border={{ radius: 4 }}
                         padding={{ top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }}
@@ -254,11 +255,12 @@ export default class ScomShoppingCart extends Module {
                             url={images[0]}
                             width="100%"
                             height="auto"
+                            margin={{ left: 'auto', right: 'auto', top: 'auto', bottom: 'auto'}}
                             maxHeight={200}
                             objectFit="contain"
                             fallbackUrl="https://placehold.co/600x400?text=No+Image"
                         />
-                    </i-panel>
+                    </i-vstack>
                     <i-vstack gap="0.5rem" width="calc(100% - 13.25rem)" minWidth="3.5rem">
                         <i-label caption={name} font={{ bold: true }} />
                         <i-label caption={description} font={{ color: Theme.text.hint, size: '0.8125rem' }} class={textEllipsis} />

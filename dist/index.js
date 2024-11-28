@@ -421,8 +421,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     }
                 };
                 const item = (this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, wrap: "wrap" },
-                    this.$render("i-panel", { width: 100, height: "auto", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' } },
-                        this.$render("i-image", { url: images[0], width: "100%", height: "auto", maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
+                    this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' } },
+                        this.$render("i-image", { url: images[0], width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
                     this.$render("i-vstack", { gap: "0.5rem", width: "calc(100% - 13.25rem)", minWidth: "3.5rem" },
                         this.$render("i-label", { caption: name, font: { bold: true } }),
                         this.$render("i-label", { caption: description, font: { color: Theme.text.hint, size: '0.8125rem' }, class: index_css_1.textEllipsis })),
