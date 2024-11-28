@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@ijstech/components": "^0.1.108",
-        "@scom/scom-payment-widget": "^0.1.3"
+        "@scom/scom-payment-widget": "git@github.com:scom-repos/scom-payment-widget.git"
     },
     "devDependencies": {
         "@ijstech/cli": "^0.1.28",

@@ -11,6 +11,7 @@
         "@ijstech/cli": "^0.1.28",
         "@ijstech/compiler": "^0.1.22",
         "@scom/scom-widget-test": "^0.1.1",
+        "@scom/scom-payment-widget": "git@github.com:scom-repos/scom-payment-widget.git",
         "@scom/scom-shopping-cart": "file:./ref"
     },
     "scripts": {

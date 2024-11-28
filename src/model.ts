@@ -45,6 +45,15 @@ export class Model {
     return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
   }
 
+  get canRemove() {
+    return this.data.canRemove || false;
+  }
+
+  set canRemove(value: boolean) {
+    this.data.canRemove = value;
+    this.updateWidget();
+  }
+
   getData() {
     return this.data;
   }
