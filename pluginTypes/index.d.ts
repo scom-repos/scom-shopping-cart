@@ -1,6 +1,8 @@
 /// <amd-module name="@scom/scom-shopping-cart/index.css.ts" />
 declare module "@scom/scom-shopping-cart/index.css.ts" {
     export const textRight: string;
+    export const inputStyle: string;
+    export const alertStyle: string;
     export const textEllipsis: string;
 }
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
@@ -9,15 +11,27 @@ declare module "@scom/scom-shopping-cart/interface.ts" {
         title: string;
         products: IProduct[];
         currency?: string;
+        canRemove?: boolean;
+    }
+    export interface IShippingInfo {
+        id: string;
+        name?: string;
+        cost: number;
+        regions?: string[];
     }
     export interface IProduct {
-        id: string | number;
+        id: string;
+        stallId?: string;
         name: string;
         description?: string;
-        image: string;
+        images: string[];
+        currency?: string;
         price: number;
         quantity: number;
-        available: number;
+        available?: number;
+        shippingInfo?: IShippingInfo[];
+        communityUri?: string;
+        stallUri?: string;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/formSchema.ts" />
@@ -46,9 +60,13 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
                             description: {
                                 type: string;
                             };
-                            image: {
+                            images: {
                                 type: string;
                                 required: boolean;
+                                items: {
+                                    type: string;
+                                    required: boolean;
+                                };
                             };
                             price: {
                                 type: string;
@@ -60,8 +78,16 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
                                 required: boolean;
                                 minimum: number;
                             };
+                            available: {
+                                type: string;
+                                required: boolean;
+                                minimum: number;
+                            };
                         };
                     };
+                };
+                canRemove: {
+                    type: string;
                 };
             };
         };
@@ -71,6 +97,7 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
                 type: string;
                 scope: string;
                 options?: undefined;
+                title?: undefined;
             } | {
                 type: string;
                 scope: string;
@@ -79,6 +106,12 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
                         type: string;
                     };
                 };
+                title?: undefined;
+            } | {
+                type: string;
+                title: string;
+                scope: string;
+                options?: undefined;
             })[];
         };
     };
@@ -101,6 +134,8 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         get title(): string;
         set title(value: string);
         get totalPrice(): number;
+        get canRemove(): boolean;
+        set canRemove(value: boolean);
         getData(): IShoppingCart;
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
@@ -139,9 +174,13 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                                     description: {
                                         type: string;
                                     };
-                                    image: {
+                                    images: {
                                         type: string;
                                         required: boolean;
+                                        items: {
+                                            type: string;
+                                            required: boolean;
+                                        };
                                     };
                                     price: {
                                         type: string;
@@ -153,8 +192,16 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                                         required: boolean;
                                         minimum: number;
                                     };
+                                    available: {
+                                        type: string;
+                                        required: boolean;
+                                        minimum: number;
+                                    };
                                 };
                             };
+                        };
+                        canRemove: {
+                            type: string;
                         };
                     };
                 };
@@ -164,6 +211,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                         type: string;
                         scope: string;
                         options?: undefined;
+                        title?: undefined;
                     } | {
                         type: string;
                         scope: string;
@@ -172,6 +220,12 @@ declare module "@scom/scom-shopping-cart/model.ts" {
                                 type: string;
                             };
                         };
+                        title?: undefined;
+                    } | {
+                        type: string;
+                        title: string;
+                        scope: string;
+                        options?: undefined;
                     })[];
                 };
             }[];
@@ -195,6 +249,7 @@ declare module "@scom/scom-shopping-cart" {
         title?: string;
         products?: IProduct[];
         currency?: string;
+        canRemove?: boolean;
         onPaymentSuccess?: (status: string) => void;
     }
     global {
@@ -210,6 +265,8 @@ declare module "@scom/scom-shopping-cart" {
         private pnlTotal;
         private lbTotal;
         private pnlBtnCheckout;
+        private scomPaymentWidget;
+        private mdAlert;
         tag: any;
         onPaymentSuccess: (status: string) => void;
         constructor(parent?: Container, options?: any);
@@ -219,6 +276,8 @@ declare module "@scom/scom-shopping-cart" {
         get currency(): string;
         get title(): string;
         get totalPrice(): number;
+        get canRemove(): boolean;
+        set canRemove(value: boolean);
         getConfigurators(): {
             name: string;
             target: string;
@@ -253,9 +312,13 @@ declare module "@scom/scom-shopping-cart" {
                                     description: {
                                         type: string;
                                     };
-                                    image: {
+                                    images: {
                                         type: string;
                                         required: boolean;
+                                        items: {
+                                            type: string;
+                                            required: boolean;
+                                        };
                                     };
                                     price: {
                                         type: string;
@@ -267,8 +330,16 @@ declare module "@scom/scom-shopping-cart" {
                                         required: boolean;
                                         minimum: number;
                                     };
+                                    available: {
+                                        type: string;
+                                        required: boolean;
+                                        minimum: number;
+                                    };
                                 };
                             };
+                        };
+                        canRemove: {
+                            type: string;
                         };
                     };
                 };
@@ -278,6 +349,7 @@ declare module "@scom/scom-shopping-cart" {
                         type: string;
                         scope: string;
                         options?: undefined;
+                        title?: undefined;
                     } | {
                         type: string;
                         scope: string;
@@ -286,6 +358,12 @@ declare module "@scom/scom-shopping-cart" {
                                 type: string;
                             };
                         };
+                        title?: undefined;
+                    } | {
+                        type: string;
+                        title: string;
+                        scope: string;
+                        options?: undefined;
                     })[];
                 };
             }[];

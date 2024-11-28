@@ -7,9 +7,27 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-shopping-cart/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.textEllipsis = exports.textRight = void 0;
+    exports.textEllipsis = exports.alertStyle = exports.inputStyle = exports.textRight = void 0;
     exports.textRight = components_1.Styles.style({
         textAlign: 'right'
+    });
+    exports.inputStyle = components_1.Styles.style({
+        $nest: {
+            'input': {
+                textAlign: 'center',
+                border: 'none'
+            }
+        }
+    });
+    exports.alertStyle = components_1.Styles.style({
+        $nest: {
+            'i-vstack i-label': {
+                textAlign: 'center'
+            },
+            'span': {
+                display: 'inline'
+            }
+        }
     });
     exports.textEllipsis = components_1.Styles.style({
         overflow: 'hidden',
@@ -51,9 +69,13 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
                             description: {
                                 type: 'string'
                             },
-                            image: {
-                                type: 'string',
-                                required: true
+                            images: {
+                                type: 'array',
+                                required: true,
+                                items: {
+                                    type: 'string',
+                                    required: true
+                                }
                             },
                             price: {
                                 type: 'number',
@@ -64,9 +86,17 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
                                 type: 'integer',
                                 required: true,
                                 minimum: 1
+                            },
+                            available: {
+                                type: 'integer',
+                                required: true,
+                                minimum: 0
                             }
                         }
                     }
+                },
+                canRemove: {
+                    type: 'boolean'
                 }
             }
         },
@@ -85,6 +115,11 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
                             type: 'VerticalLayout'
                         }
                     }
+                },
+                {
+                    type: 'Control',
+                    title: 'Allow Remove?',
+                    scope: '#/properties/canRemove'
                 }
             ]
         }
@@ -125,6 +160,13 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         }
         get totalPrice() {
             return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
+        }
+        get canRemove() {
+            return this.data.canRemove || false;
+        }
+        set canRemove(value) {
+            this.data.canRemove = value;
+            this.updateWidget();
         }
         getData() {
             return this.data;
@@ -205,7 +247,7 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
     }
     exports.Model = Model;
 });
-define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/index.css.ts", "@scom/scom-shopping-cart/model.ts"], function (require, exports, components_2, index_css_1, model_1) {
+define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/index.css.ts", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget"], function (require, exports, components_2, index_css_1, model_1, scom_payment_widget_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_2.Styles.Theme.ThemeVars;
@@ -234,6 +276,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         }
         get totalPrice() {
             return this.model.totalPrice;
+        }
+        get canRemove() {
+            return this.model.canRemove;
+        }
+        set canRemove(value) {
+            this.model.canRemove = value;
         }
         getConfigurators() {
             this.initModel();
@@ -278,16 +326,42 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 return;
             }
             const nodeItems = [];
-            let total = 0;
             for (const product of this.products) {
-                const { name, description, image, price, quantity, available } = product;
+                const { name, description, images, price, quantity, available } = product;
                 let _quantity = Number(quantity);
-                total = total + (quantity * price);
-                const lbQuantity = new components_2.Label(undefined, {
-                    caption: components_2.FormatUtils.formatNumber(quantity, { hasTrailingZero: false, decimalFigures: 0 }),
-                    font: { bold: true },
-                    lineHeight: 1
+                const edtQuantity = new components_2.Input(undefined, {
+                    value: quantity,
+                    inputType: 'number',
+                    width: 50,
+                    border: { style: 'none' },
+                    background: { color: 'transparent' }
                 });
+                edtQuantity.classList.add(index_css_1.inputStyle);
+                edtQuantity.onChanged = () => {
+                    const qty = edtQuantity.value;
+                    let isInput = true;
+                    if (qty === '')
+                        return;
+                    if (qty < 1) {
+                        _quantity = 1;
+                        isInput = false;
+                    }
+                    else if (available && qty > available) {
+                        _quantity = available;
+                        isInput = false;
+                    }
+                    else {
+                        _quantity = qty;
+                    }
+                    updateQuantity(isInput);
+                };
+                edtQuantity.onBlur = () => {
+                    const qty = edtQuantity.value;
+                    if (qty === '') {
+                        _quantity = 1;
+                        updateQuantity();
+                    }
+                };
                 const iconMinus = new components_2.Icon(undefined, {
                     name: 'minus-circle',
                     width: 20,
@@ -296,24 +370,24 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     cursor: _quantity === 1 ? 'default' : 'pointer',
                     enabled: _quantity > 1
                 });
-                const updateQuantity = () => {
+                const updateQuantity = (isInput) => {
                     iconMinus.cursor = _quantity === 1 ? 'default' : 'pointer';
                     iconMinus.enabled = _quantity > 1;
-                    iconPlus.cursor = _quantity === available ? 'default' : 'pointer';
-                    iconPlus.enabled = _quantity < available;
-                    lbQuantity.caption = components_2.FormatUtils.formatNumber(_quantity, { hasTrailingZero: false, decimalFigures: 0 });
-                    this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                    iconPlus.cursor = available !== undefined && _quantity === available ? 'default' : 'pointer';
+                    iconPlus.enabled = available === undefined || _quantity < available;
+                    if (!isInput)
+                        edtQuantity.value = _quantity;
                     const idx = this.products.findIndex(v => v.id == product.id);
                     this.products[idx] = {
                         ...product,
                         quantity: _quantity
                     };
+                    this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
                 };
                 iconMinus.onClick = () => {
                     if (_quantity === 1)
                         return;
                     _quantity = _quantity - 1;
-                    total = total - price;
                     updateQuantity();
                 };
                 const iconPlus = new components_2.Icon(undefined, {
@@ -321,23 +395,26 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     width: 20,
                     height: 20,
                     fill: Theme.text.primary,
-                    cursor: _quantity === available ? 'default' : 'pointer',
-                    enabled: _quantity < available
+                    cursor: available !== undefined && _quantity === available ? 'default' : 'pointer',
+                    enabled: available === undefined || _quantity < available
                 });
                 iconPlus.onClick = () => {
                     if (_quantity === available)
                         return;
                     _quantity = _quantity + 1;
-                    total = total + price;
                     updateQuantity();
                 };
                 const handleDelete = () => {
+                    this.mdAlert.content = `Are you sure you want to detele <b>${product.name}</b>?`;
+                    this.mdAlert.onConfirm = () => confirmDelete();
+                    this.mdAlert.showModal();
+                };
+                const confirmDelete = () => {
                     const idx = this.products.findIndex(v => v.id == product.id);
                     this.products.splice(idx, 1);
                     if (this.products.length) {
                         this.pnlProducts.removeChild(item);
-                        total = total - (_quantity * price);
-                        this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                        this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
                     }
                     else {
                         this.renderProducts();
@@ -345,25 +422,36 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 };
                 const item = (this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, wrap: "wrap" },
                     this.$render("i-panel", { width: 100, height: "auto", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' } },
-                        this.$render("i-image", { url: image, width: "100%", height: "auto", maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
+                        this.$render("i-image", { url: images[0], width: "100%", height: "auto", maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
                     this.$render("i-vstack", { gap: "0.5rem", width: "calc(100% - 13.25rem)", minWidth: "3.5rem" },
                         this.$render("i-label", { caption: name, font: { bold: true } }),
                         this.$render("i-label", { caption: description, font: { color: Theme.text.hint, size: '0.8125rem' }, class: index_css_1.textEllipsis })),
                     this.$render("i-vstack", { gap: "0.5rem", minWidth: 80, margin: { left: 'auto' } },
-                        this.$render("i-icon", { name: "trash", fill: Theme.colors.error.main, width: 16, height: 16, cursor: "pointer", margin: { left: 'auto' }, onClick: handleDelete.bind(this) }),
+                        this.canRemove ? this.$render("i-icon", { name: "trash", fill: Theme.colors.error.main, width: 16, height: 16, cursor: "pointer", margin: { left: 'auto' }, onClick: handleDelete.bind(this) }) : [],
                         this.$render("i-label", { caption: `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 2 })}`, font: { bold: true }, margin: { left: 'auto' }, class: index_css_1.textRight }),
-                        this.$render("i-hstack", { gap: "0.5rem", verticalAlignment: "center", horizontalAlignment: "end" },
+                        this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end" },
                             iconMinus,
-                            lbQuantity,
+                            edtQuantity,
                             iconPlus))));
                 nodeItems.push(item);
             }
             this.pnlProducts.clearInnerHTML();
             this.pnlProducts.append(...nodeItems);
-            this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+            this.lbTotal.caption = `${this.model.currencyText} ${components_2.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
         }
-        handleCheckout() {
-            console.log('handleCheckout');
+        async handleCheckout() {
+            if (!this.scomPaymentWidget) {
+                this.scomPaymentWidget = new scom_payment_widget_1.ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
+                this.scomPaymentWidget.onPaymentSuccess = this.onPaymentSuccess.bind(this);
+                this.appendChild(this.scomPaymentWidget);
+                await this.scomPaymentWidget.ready();
+            }
+            this.scomPaymentWidget.onStartPayment({
+                title: this.title,
+                products: this.products,
+                currency: this.currency,
+                // TODO - Payment info
+            });
         }
         initModel() {
             if (!this.model) {
@@ -379,8 +467,9 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 const title = this.getAttribute('title', true);
                 const currency = this.getAttribute('currency', true);
                 const products = this.getAttribute('products', true);
+                const canRemove = this.getAttribute('canRemove', true, false);
                 if (products) {
-                    this.setData({ title, products, currency });
+                    this.setData({ title, products, currency, canRemove });
                 }
             }
         }
@@ -391,7 +480,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                     this.$render("i-label", { caption: "Total", font: { size: '1rem', bold: true } }),
                     this.$render("i-label", { id: "lbTotal", font: { size: '1rem', bold: true } })),
                 this.$render("i-vstack", { id: "pnlBtnCheckout", width: "100%", verticalAlignment: "center" },
-                    this.$render("i-button", { caption: "Checkout", width: "100%", maxWidth: 180, minWidth: 90, margin: { top: '1rem', left: 'auto', right: 'auto' }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText }, background: { color: Theme.colors.primary.main }, border: { radius: 12 }, onClick: this.handleCheckout }))));
+                    this.$render("i-button", { caption: "Checkout", width: "100%", maxWidth: 180, minWidth: 90, margin: { top: '1rem', left: 'auto', right: 'auto' }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText }, background: { color: Theme.colors.primary.main }, border: { radius: 12 }, onClick: this.handleCheckout })),
+                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "Confirm Deletion", class: index_css_1.alertStyle })));
         }
     };
     ScomShoppingCart = __decorate([

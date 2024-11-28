@@ -9,11 +9,14 @@ import {
     Panel,
     VStack,
     Icon,
-    FormatUtils
+    FormatUtils,
+    Input,
+    Alert
 } from '@ijstech/components';
-import { textEllipsis, textRight } from './index.css';
+import { alertStyle, inputStyle, textEllipsis, textRight } from './index.css';
 import { IProduct, IShoppingCart } from './interface';
 import { Model } from './model';
+import { ScomPaymentWidget } from '@scom/scom-payment-widget';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -21,6 +24,7 @@ interface ScomShoppingCartElement extends ControlElement {
     title?: string;
     products?: IProduct[];
     currency?: string;
+    canRemove?: boolean;
     onPaymentSuccess?: (status: string) => void;
 }
 
@@ -40,6 +44,8 @@ export default class ScomShoppingCart extends Module {
     private pnlTotal: Panel;
     private lbTotal: Label;
     private pnlBtnCheckout: VStack;
+    private scomPaymentWidget: ScomPaymentWidget;
+    private mdAlert: Alert;
 
     tag: any = {};
     onPaymentSuccess: (status: string) => void;
@@ -73,6 +79,14 @@ export default class ScomShoppingCart extends Module {
 
     get totalPrice() {
         return this.model.totalPrice;
+    }
+
+    get canRemove() {
+        return this.model.canRemove;
+    }
+
+    set canRemove(value: boolean) {
+        this.model.canRemove = value;
     }
 
     getConfigurators() {
@@ -133,16 +147,39 @@ export default class ScomShoppingCart extends Module {
             return;
         }
         const nodeItems: HTMLElement[] = [];
-        let total = 0;
         for (const product of this.products) {
-            const { name, description, image, price, quantity, available } = product;
+            const { name, description, images, price, quantity, available } = product;
             let _quantity = Number(quantity);
-            total = total + (quantity * price);
-            const lbQuantity = new Label(undefined, {
-                caption: FormatUtils.formatNumber(quantity, { hasTrailingZero: false, decimalFigures: 0 }),
-                font: { bold: true },
-                lineHeight: 1
+            const edtQuantity = new Input(undefined, {
+                value: quantity,
+                inputType: 'number',
+                width: 50,
+                border: { style: 'none' },
+                background: { color: 'transparent' }
             });
+            edtQuantity.classList.add(inputStyle);
+            edtQuantity.onChanged = () => {
+                const qty = edtQuantity.value;
+                let isInput = true;
+                if (qty === '') return;
+                if (qty < 1) {
+                    _quantity = 1;
+                    isInput = false;
+                } else if (available && qty > available) {
+                    _quantity = available;
+                    isInput = false;
+                } else {
+                    _quantity = qty;
+                }
+                updateQuantity(isInput);
+            }
+            edtQuantity.onBlur = () => {
+                const qty = edtQuantity.value;
+                if (qty === '') {
+                    _quantity = 1;
+                    updateQuantity();
+                }
+            }
             const iconMinus = new Icon(undefined, {
                 name: 'minus-circle',
                 width: 20,
@@ -151,23 +188,22 @@ export default class ScomShoppingCart extends Module {
                 cursor: _quantity === 1 ? 'default' : 'pointer',
                 enabled: _quantity > 1
             });
-            const updateQuantity = () => {
+            const updateQuantity = (isInput?: boolean) => {
                 iconMinus.cursor = _quantity === 1 ? 'default' : 'pointer';
                 iconMinus.enabled = _quantity > 1;
-                iconPlus.cursor = _quantity === available ? 'default' : 'pointer';
-                iconPlus.enabled = _quantity < available;
-                lbQuantity.caption = FormatUtils.formatNumber(_quantity, { hasTrailingZero: false, decimalFigures: 0 });
-                this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                iconPlus.cursor = available !== undefined && _quantity === available ? 'default' : 'pointer';
+                iconPlus.enabled = available === undefined || _quantity < available;
+                if (!isInput) edtQuantity.value = _quantity;
                 const idx = this.products.findIndex(v => v.id == product.id);
                 this.products[idx] = {
                     ...product,
                     quantity: _quantity
                 }
+                this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
             }
             iconMinus.onClick = () => {
                 if (_quantity === 1) return;
                 _quantity = _quantity - 1;
-                total = total - price;
                 updateQuantity();
             }
             const iconPlus = new Icon(undefined, {
@@ -175,22 +211,25 @@ export default class ScomShoppingCart extends Module {
                 width: 20,
                 height: 20,
                 fill: Theme.text.primary,
-                cursor: _quantity === available ? 'default' : 'pointer',
-                enabled: _quantity < available
+                cursor: available !== undefined && _quantity === available ? 'default' : 'pointer',
+                enabled: available === undefined || _quantity < available
             });
             iconPlus.onClick = () => {
                 if (_quantity === available) return;
                 _quantity = _quantity + 1;
-                total = total + price;
                 updateQuantity();
             }
             const handleDelete = () => {
+                this.mdAlert.content = `Are you sure you want to detele <b>${product.name}</b>?`;
+                this.mdAlert.onConfirm = () => confirmDelete();
+                this.mdAlert.showModal();
+            }
+            const confirmDelete = () => {
                 const idx = this.products.findIndex(v => v.id == product.id);
                 this.products.splice(idx, 1);
                 if (this.products.length) {
                     this.pnlProducts.removeChild(item);
-                    total = total - (_quantity * price);
-                    this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+                    this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
                 } else {
                     this.renderProducts();
                 }
@@ -212,7 +251,7 @@ export default class ScomShoppingCart extends Module {
                         padding={{ top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }}
                     >
                         <i-image
-                            url={image}
+                            url={images[0]}
                             width="100%"
                             height="auto"
                             maxHeight={200}
@@ -225,11 +264,11 @@ export default class ScomShoppingCart extends Module {
                         <i-label caption={description} font={{ color: Theme.text.hint, size: '0.8125rem' }} class={textEllipsis} />
                     </i-vstack>
                     <i-vstack gap="0.5rem" minWidth={80} margin={{ left: 'auto' }}>
-                        <i-icon name="trash" fill={Theme.colors.error.main} width={16} height={16} cursor="pointer" margin={{ left: 'auto' }} onClick={handleDelete.bind(this)} />
+                        {this.canRemove ? <i-icon name="trash" fill={Theme.colors.error.main} width={16} height={16} cursor="pointer" margin={{ left: 'auto' }} onClick={handleDelete.bind(this)} /> : []}
                         <i-label caption={`${this.model.currencyText} ${FormatUtils.formatNumber(price, { decimalFigures: 2 })}`} font={{ bold: true }} margin={{ left: 'auto' }} class={textRight} />
-                        <i-hstack gap="0.5rem" verticalAlignment="center" horizontalAlignment="end">
+                        <i-hstack verticalAlignment="center" horizontalAlignment="end">
                             {iconMinus}
-                            {lbQuantity}
+                            {edtQuantity}
                             {iconPlus}
                         </i-hstack>
                     </i-vstack>
@@ -239,11 +278,22 @@ export default class ScomShoppingCart extends Module {
         }
         this.pnlProducts.clearInnerHTML();
         this.pnlProducts.append(...nodeItems);
-        this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(total, { decimalFigures: 2 })}`;
+        this.lbTotal.caption = `${this.model.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
     }
 
-    private handleCheckout() {
-        console.log('handleCheckout')
+    private async handleCheckout() {
+        if (!this.scomPaymentWidget) {
+            this.scomPaymentWidget = new ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
+            this.scomPaymentWidget.onPaymentSuccess = this.onPaymentSuccess.bind(this);
+            this.appendChild(this.scomPaymentWidget);
+            await this.scomPaymentWidget.ready();
+        }
+        this.scomPaymentWidget.onStartPayment({
+            title: this.title,
+            products: this.products,
+            currency: this.currency,
+            // TODO - Payment info
+        });
     }
 
     private initModel() {
@@ -261,8 +311,9 @@ export default class ScomShoppingCart extends Module {
             const title = this.getAttribute('title', true);
             const currency = this.getAttribute('currency', true);
             const products = this.getAttribute('products', true);
+            const canRemove = this.getAttribute('canRemove', true, false);
             if (products) {
-                this.setData({ title, products, currency });
+                this.setData({ title, products, currency, canRemove });
             }
         }
     }
@@ -289,6 +340,7 @@ export default class ScomShoppingCart extends Module {
                         onClick={this.handleCheckout}
                     />
                 </i-vstack>
+                <i-alert id="mdAlert" status="confirm" title="Confirm Deletion" class={alertStyle} />
             </i-panel>
         )
     }

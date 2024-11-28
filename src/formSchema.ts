@@ -22,9 +22,13 @@ export default {
                         description: {
                             type: 'string'
                         },
-                        image: {
-                            type: 'string',
-                            required: true
+                        images: {
+                            type: 'array',
+                            required: true,
+                            items: {
+                                type: 'string',
+                                required: true
+                            }
                         },
                         price: {
                             type: 'number',
@@ -35,9 +39,17 @@ export default {
                             type: 'integer',
                             required: true,
                             minimum: 1
+                        },
+                        available: {
+                            type: 'integer',
+                            required: true,
+                            minimum: 0
                         }
                     }
                 }
+            },
+            canRemove: {
+                type: 'boolean'
             }
         }
     },
@@ -56,6 +68,11 @@ export default {
                         type: 'VerticalLayout'
                     }
                 }
+            },
+            {
+                type: 'Control',
+                title: 'Allow Remove?',
+                scope: '#/properties/canRemove'
             }
         ]
     }
