@@ -1,6 +1,6 @@
 {
     "name": "@scom/scom-shopping-cart",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "main": "dist/index.js",
     "plugin": "dist",
     "pluginTypes": "pluginTypes/index.d.ts",
@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@ijstech/components": "^0.1.108",
-        "@scom/scom-payment-widget": "git@github.com:scom-repos/scom-payment-widget.git"
+        "@scom/scom-payment-widget": "^0.1.4"
     },
     "devDependencies": {
         "@ijstech/cli": "^0.1.28",
