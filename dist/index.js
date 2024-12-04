@@ -617,9 +617,11 @@ define("@scom/scom-shopping-cart/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "buttonStyle", { enumerable: true, get: function () { return index_css_3.buttonStyle; } });
     exports.ShoppingCartProductList = productList_1.default;
 });
-define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/components/index.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, model_2, scom_payment_widget_1, index_1, translations_json_3) {
+define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/interface.ts", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/components/index.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, interface_1, model_2, scom_payment_widget_1, index_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ProductType = void 0;
+    Object.defineProperty(exports, "ProductType", { enumerable: true, get: function () { return interface_1.ProductType; } });
     const Theme = components_4.Styles.Theme.ThemeVars;
     let ScomShoppingCart = class ScomShoppingCart extends components_4.Module {
         constructor(parent, options) {

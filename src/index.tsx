@@ -8,11 +8,12 @@ import {
     VStack,
     Button,
 } from '@ijstech/components';
-import { IProduct, IShoppingCart } from './interface';
+import { IProduct, IShoppingCart, ProductType } from './interface';
 import { MAX_PRODUCTS, Model } from './model';
 import { ScomPaymentWidget } from '@scom/scom-payment-widget';
 import { buttonStyle, ShoppingCartProductList } from './components/index';
 import translations from './translations.json';
+export { ProductType };
 
 const Theme = Styles.Theme.ThemeVars;
 

@@ -402,7 +402,8 @@ declare module "@scom/scom-shopping-cart/components/index.ts" {
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IProduct, IShoppingCart, ProductType } from "@scom/scom-shopping-cart/interface.ts";
+    export { ProductType };
     interface ScomShoppingCartElement extends ControlElement {
         translations?: any;
         title?: string;
