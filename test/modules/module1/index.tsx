@@ -1,5 +1,5 @@
 import { Module, customModule, Container } from '@ijstech/components';
-import ScomShoppingCart from '@scom/scom-shopping-cart';
+import ScomShoppingCart, { ProductType } from '@scom/scom-shopping-cart';
 import ScomWidgetTest from '@scom/scom-widget-test';
 
 @customModule
@@ -43,10 +43,15 @@ export default class Module1 extends Module {
         console.log("onPaymentSuccess", value);
     }
 
+    private onUpdateQuantity(id: string, quantity: number) {
+        console.log(id, quantity)
+    }
+
     render() {
         return (
             <i-panel
                 width="100%"
+                padding={{ bottom: '1rem' }}
             >
                 <i-vstack
                     verticalAlignment="center"
@@ -60,9 +65,12 @@ export default class Module1 extends Module {
                     <i-scom-shopping-cart
                         id="scomShoppingCart"
                         title="Mix Products"
+                        onQuantityUpdated={this.onUpdateQuantity}
+                        canRemove={true}
                         products={[
                             {
                                 id: '1',
+                                productType: ProductType.Physical,
                                 name: 'Canon minimal',
                                 description: 'Black fujifilm DSLR camera',
                                 images: ['https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
@@ -72,6 +80,7 @@ export default class Module1 extends Module {
                             },
                             {
                                 id: '2',
+                                productType: ProductType.Physical,
                                 name: 'Lens',
                                 description: 'Selective focus photography of disassembled camera telephoto lens',
                                 images: ['https://images.pexels.com/photos/279906/pexels-photo-279906.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
@@ -81,6 +90,7 @@ export default class Module1 extends Module {
                             },
                             {
                                 id: '3',
+                                productType: ProductType.Physical,
                                 name: 'Venus mascara',
                                 description: 'Venus HD Make-up',
                                 images: ['https://images.pexels.com/photos/2697787/pexels-photo-2697787.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],

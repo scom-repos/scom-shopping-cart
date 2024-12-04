@@ -1,3 +1,12 @@
+export enum ProductType {
+	Physical = "Physical",
+	Digital = "Digital",
+	Course = "Course",
+	Ebook = "Ebook",
+	Membership = "Membership",
+	Bundle = "Bundle"
+}
+
 export interface IShoppingCart {
     title: string;
     products: IProduct[];
@@ -16,6 +25,7 @@ export interface IShippingInfo {
 export interface IProduct {
     id: string;
     stallId?: string;
+    productType?: ProductType;
     name: string;
     description?: string;
     images: string[];
