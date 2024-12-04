@@ -7,6 +7,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-shopping-cart/interface.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ProductType = void 0;
+    ///<amd-module name='@scom/scom-shopping-cart/interface.ts'/> 
+    var ProductType;
+    (function (ProductType) {
+        ProductType["Physical"] = "Physical";
+        ProductType["Digital"] = "Digital";
+        ProductType["Course"] = "Course";
+        ProductType["Ebook"] = "Ebook";
+        ProductType["Membership"] = "Membership";
+        ProductType["Bundle"] = "Bundle";
+    })(ProductType = exports.ProductType || (exports.ProductType = {}));
 });
 define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], function (require, exports) {
     "use strict";

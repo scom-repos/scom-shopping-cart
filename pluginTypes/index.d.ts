@@ -1,5 +1,13 @@
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
 declare module "@scom/scom-shopping-cart/interface.ts" {
+    export enum ProductType {
+        Physical = "Physical",
+        Digital = "Digital",
+        Course = "Course",
+        Ebook = "Ebook",
+        Membership = "Membership",
+        Bundle = "Bundle"
+    }
     export interface IShoppingCart {
         title: string;
         products: IProduct[];
@@ -15,6 +23,7 @@ declare module "@scom/scom-shopping-cart/interface.ts" {
     export interface IProduct {
         id: string;
         stallId?: string;
+        productType?: ProductType;
         name: string;
         description?: string;
         images: string[];
