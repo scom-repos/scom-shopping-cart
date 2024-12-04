@@ -43,10 +43,15 @@ export default class Module1 extends Module {
         console.log("onPaymentSuccess", value);
     }
 
+    private onUpdateQuantity(id: string, quantity: number) {
+        console.log(id, quantity)
+    }
+
     render() {
         return (
             <i-panel
                 width="100%"
+                padding={{ bottom: '1rem' }}
             >
                 <i-vstack
                     verticalAlignment="center"
@@ -60,6 +65,8 @@ export default class Module1 extends Module {
                     <i-scom-shopping-cart
                         id="scomShoppingCart"
                         title="Mix Products"
+                        onQuantityUpdated={this.onUpdateQuantity}
+                        canRemove={true}
                         products={[
                             {
                                 id: '1',

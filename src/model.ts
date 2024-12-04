@@ -2,6 +2,8 @@ import { Module } from '@ijstech/components';
 import { IProduct, IShoppingCart } from './interface';
 import formSchema from './formSchema';
 
+export const MAX_PRODUCTS = 5;
+
 export class Model {
   private module: Module;
   private data: IShoppingCart = { title: '', products: [] };
@@ -45,6 +47,10 @@ export class Model {
     return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
   }
 
+  get totalQuantity() {
+    return this.products?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  }
+
   get canRemove() {
     return this.data.canRemove || false;
   }
@@ -52,6 +58,10 @@ export class Model {
   set canRemove(value: boolean) {
     this.data.canRemove = value;
     this.updateWidget();
+  }
+
+  get isShowAllVisible() {
+    return this.products.length > MAX_PRODUCTS;
   }
 
   getData() {
@@ -136,5 +146,9 @@ export class Model {
         quantity: quantity
       };
     }
+  }
+
+  clear() {
+    this.data.products = [];
   }
 }
