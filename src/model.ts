@@ -2,12 +2,10 @@ import { Module } from '@ijstech/components';
 import { IProduct, IShoppingCart } from './interface';
 import formSchema from './formSchema';
 
-export const MAX_PRODUCTS = 5;
-
 export class Model {
   private module: Module;
   private data: IShoppingCart = { title: '', products: [] };
-  updateWidget: () => void;
+  updateWidget: (reset: boolean) => void;
 
   constructor(module: Module) {
     this.module = module;
@@ -19,7 +17,7 @@ export class Model {
 
   set products(value: IProduct[]) {
     this.data.products = value;
-    this.updateWidget();
+    this.updateWidget(true);
   }
 
   get currency() {
@@ -57,11 +55,7 @@ export class Model {
 
   set canRemove(value: boolean) {
     this.data.canRemove = value;
-    this.updateWidget();
-  }
-
-  get isShowAllVisible() {
-    return this.products.length > MAX_PRODUCTS;
+    this.updateWidget(true);
   }
 
   getData() {
@@ -70,7 +64,7 @@ export class Model {
 
   async setData(value: IShoppingCart) {
     this.data = value;
-    this.updateWidget();
+    this.updateWidget(true);
   }
 
   getTag() {
@@ -150,5 +144,17 @@ export class Model {
 
   clear() {
     this.data.products = [];
+  }
+
+  mergeI18nData(i18nData: Record<string, any>[]) {
+    const mergedI18nData: Record<string, any> = {};
+    for (let i = 0; i < i18nData.length; i++) {
+      const i18nItem = i18nData[i];
+      if (!i18nItem) continue;
+      for (const key in i18nItem) {
+        mergedI18nData[key] = { ...(mergedI18nData[key] || {}), ...(i18nItem[key] || {}) };
+      }
+    }
+    return mergedI18nData;
   }
 }

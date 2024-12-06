@@ -123,11 +123,10 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
 declare module "@scom/scom-shopping-cart/model.ts" {
     import { Module } from '@ijstech/components';
     import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
-    export const MAX_PRODUCTS = 5;
     export class Model {
         private module;
         private data;
-        updateWidget: () => void;
+        updateWidget: (reset: boolean) => void;
         constructor(module: Module);
         get products(): IProduct[];
         set products(value: IProduct[]);
@@ -140,7 +139,6 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         get totalQuantity(): number;
         get canRemove(): boolean;
         set canRemove(value: boolean);
-        get isShowAllVisible(): boolean;
         getData(): IShoppingCart;
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
@@ -245,6 +243,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         removeProduct(id: string | number): void;
         updateQuantity(id: string | number, quantity: number): void;
         clear(): void;
+        mergeI18nData(i18nData: Record<string, any>[]): Record<string, any>;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/components/index.css.ts" />
@@ -254,40 +253,33 @@ declare module "@scom/scom-shopping-cart/components/index.css.ts" {
     export const alertStyle: string;
     export const textEllipsis: string;
     export const buttonStyle: string;
-    export const productListStyle: string;
 }
 /// <amd-module name="@scom/scom-shopping-cart/translations.json.ts" />
 declare module "@scom/scom-shopping-cart/translations.json.ts" {
     const _default_1: {
         en: {
-            shoppingCart: string;
-            showAll: string;
             total: string;
-            totalQuantity: string;
+            total_quantity: string;
             checkout: string;
-            noProduct: string;
-            confirmDeletion: string;
-            areYouSureYouWantToDelete: string;
+            no_product: string;
+            confirm_deletion: string;
+            are_you_sure_you_want_to_delete: string;
         };
         "zh-hant": {
-            shoppingCart: string;
-            showAll: string;
             total: string;
-            totalQuantity: string;
+            total_quantity: string;
             checkout: string;
-            noProduct: string;
-            confirmDeletion: string;
-            areYouSureYouWantToDelete: string;
+            no_product: string;
+            confirm_deletion: string;
+            are_you_sure_you_want_to_delete: string;
         };
         vi: {
-            shoppingCart: string;
-            showAll: string;
             total: string;
-            totalQuantity: string;
+            total_quantity: string;
             checkout: string;
-            noProduct: string;
-            confirmDeletion: string;
-            areYouSureYouWantToDelete: string;
+            no_product: string;
+            confirm_deletion: string;
+            are_you_sure_you_want_to_delete: string;
         };
     };
     export default _default_1;
@@ -367,6 +359,11 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
         private lbTotalPrice;
         private lbTotalQuantity;
         private pnlBtnCheckout;
+        private totalPage;
+        private pageNumber;
+        private itemStart;
+        private itemEnd;
+        private paginationElm;
         onQuantityUpdated: (id: string, quantity: number) => void;
         onProductRemoved: (id: string) => void;
         onCheckout: () => void;
@@ -381,13 +378,17 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
         get totalPrice(): number;
         get totalQuantity(): number;
         get canRemove(): boolean;
+        private get paginatedProducts();
         private handleCheckout;
         private removeProduct;
         private updateQuantity;
-        handleRemoveProduct(id: string): void;
+        handleRemoveProduct(id: string, idx: number): void;
         updateQuantityFromParent(id: string, quantity: number): void;
         private updateTotalValues;
-        renderProducts(isLimited?: boolean): void;
+        private onSelectIndex;
+        private updatePaginationData;
+        private resetPagination;
+        renderProducts(resetPaging?: boolean): void;
         initTranslations(translations: any): void;
         init(): Promise<void>;
         render(): any;
@@ -395,9 +396,8 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
 }
 /// <amd-module name="@scom/scom-shopping-cart/components/index.ts" />
 declare module "@scom/scom-shopping-cart/components/index.ts" {
-    import { buttonStyle } from "@scom/scom-shopping-cart/components/index.css.ts";
     import ShoppingCartProductList from "@scom/scom-shopping-cart/components/productList.tsx";
-    export { buttonStyle, ShoppingCartProductList, };
+    export { ShoppingCartProductList, };
 }
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
@@ -425,10 +425,7 @@ declare module "@scom/scom-shopping-cart" {
         private _translations;
         private model;
         private productListElm;
-        private allProductListElm;
         private scomPaymentWidget;
-        private wrapperShowAll;
-        private btnShowAll;
         tag: any;
         onPaymentSuccess: (status: string) => void;
         onQuantityUpdated: (id: string, quantity: number) => void;
@@ -548,7 +545,6 @@ declare module "@scom/scom-shopping-cart" {
         private handleUpdateQuantity;
         private handleRemoveProduct;
         private renderProducts;
-        private handleShowAll;
         private handlePaymentSuccess;
         private handleCheckout;
         private initModel;

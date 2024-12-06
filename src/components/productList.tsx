@@ -7,13 +7,17 @@ import {
   FormatUtils,
   Label,
   VStack,
-  HStack
+  HStack,
+  Pagination,
+  observable
 } from '@ijstech/components';
 import ShoppingCartProduct from './product';
 import { IProduct } from '../interface';
-import { MAX_PRODUCTS, Model } from '../model';
-import { buttonStyle, productListStyle } from './index.css';
+import { Model } from '../model';
+import { buttonStyle } from './index.css';
 import translations from '../translations.json';
+
+const pageSize = 5;
 
 interface ScomShoppingCartProductListElement extends ControlElement {
   onQuantityUpdated: (id: string, quantity: number) => void;
@@ -40,6 +44,13 @@ export default class ShoppingCartProductList extends Module {
   private lbTotalPrice: Label;
   private lbTotalQuantity: Label;
   private pnlBtnCheckout: VStack;
+
+  @observable()
+  private totalPage = 0;
+  private pageNumber = 0;
+  private itemStart = 0;
+  private itemEnd = pageSize;
+  private paginationElm: Pagination;
 
   onQuantityUpdated: (id: string, quantity: number) => void;
   onProductRemoved: (id: string) => void;
@@ -91,6 +102,10 @@ export default class ShoppingCartProductList extends Module {
     return this.model.canRemove;
   }
 
+  private get paginatedProducts() {
+    return this.products.slice(this.itemStart, this.itemEnd);
+  }
+
   private handleCheckout() {
     if (this.onCheckout) this.onCheckout();
   }
@@ -105,12 +120,12 @@ export default class ShoppingCartProductList extends Module {
     this.updateTotalValues();
   }
 
-  handleRemoveProduct(id: string) {
-    const elm = this.listProductElm[`product-${id}`];
-    if (elm && this.pnlProducts.contains(elm)) {
-      this.pnlProducts.removeChild(elm);
+  handleRemoveProduct(id: string, idx: number) {
+    if ((this.products.length % pageSize) === 0 && idx === this.products.length) {
+      this.pageNumber = this.pageNumber - 1;
+      this.paginationElm.currentPage = this.pageNumber;
     }
-    this.updateTotalValues();
+    this.updatePaginationData();
   }
 
   updateQuantityFromParent(id: string, quantity: number) {
@@ -123,18 +138,40 @@ export default class ShoppingCartProductList extends Module {
     this.lbTotalQuantity.caption = `${FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
   }
 
-  renderProducts(isLimited?: boolean) {
+  private async onSelectIndex() {
+    if (!this.model) return;
+    this.pageNumber = this.paginationElm.currentPage;
+    this.updatePaginationData();
+  }
+
+  private updatePaginationData() {
+    this.itemStart = (this.pageNumber - 1) * pageSize;
+    this.itemEnd = this.itemStart + pageSize;
+    this.renderProducts();
+  }
+
+  private resetPagination() {
+    this.pageNumber = 1;
+    this.paginationElm.currentPage = 1;
+    this.itemStart = 0;
+    this.itemEnd = this.itemStart + pageSize;
+  }
+
+  renderProducts(resetPaging?: boolean) {
     if (!this.pnlProducts) return;
+    if (resetPaging) {
+      this.resetPagination();
+    }
     if (!this.products || !this.products.length) {
       this.pnlTotalQuantity.visible = false;
       this.pnlTotalPrice.visible = false;
       this.pnlBtnCheckout.visible = false;
-      this.pnlProducts.classList.remove(productListStyle);
+      this.paginationElm.visible = false;
       this.listProductElm = {};
       this.pnlProducts.clearInnerHTML();
       this.pnlProducts.appendChild(
         <i-label
-          caption="$noProduct"
+          caption={this.i18n.get('$no_product')}
           font={{ size: '1rem' }}
           padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
           margin={{ left: 'auto', right: 'auto' }}
@@ -142,30 +179,21 @@ export default class ShoppingCartProductList extends Module {
       );
       return;
     }
+    this.totalPage = Math.ceil(this.products.length / pageSize);
+    this.paginationElm.visible = this.totalPage > 1;
     this.listProductElm = {};
     const nodeItems: HTMLElement[] = [];
-    const isLimitedProducts = isLimited && this.model.isShowAllVisible;
-    this.pnlTotalPrice.visible = !isLimitedProducts;
-    this.pnlBtnCheckout.visible = !isLimitedProducts;
+    this.pnlTotalPrice.visible = true;
+    this.pnlBtnCheckout.visible = true;
     this.pnlTotalQuantity.visible = true;
-    const length = isLimitedProducts ? MAX_PRODUCTS : this.products.length;
-    for (let i = 0; i < length; i++) {
-      const product = this.products[i];
+    for (let i = 0; i < this.paginatedProducts.length; i++) {
+      const product = this.paginatedProducts[i];
       const shoppingCartProduct = new ShoppingCartProduct();
       this.listProductElm[`product-${product.id}`] = shoppingCartProduct;
-      if (!isLimited) {
-        shoppingCartProduct.display = 'block';
-        shoppingCartProduct.margin = { top: '1rem' };
-      }
       shoppingCartProduct.onQuantityUpdated = this.updateQuantity.bind(this);
       shoppingCartProduct.onProductRemoved = this.removeProduct.bind(this);
       shoppingCartProduct.setProduct(product, this.currencyText, this.canRemove);
       nodeItems.push(shoppingCartProduct);
-    }
-    if (isLimited) {
-      this.pnlProducts.classList.remove(productListStyle);
-    } else {
-      this.pnlProducts.classList.add(productListStyle);
     }
     this.pnlProducts.clearInnerHTML();
     this.pnlProducts.append(...nodeItems);
@@ -188,8 +216,17 @@ export default class ShoppingCartProductList extends Module {
     return (
       <i-panel width="100%" height="100%">
         <i-vstack id="pnlProducts" gap="1rem" width="100%" verticalAlignment="center" />
+        <i-hstack margin={{ top: '1rem', bottom: '1rem' }} justifyContent="end">
+          <i-pagination
+            id="paginationElm"
+            width="auto"
+            currentPage={this.pageNumber}
+            totalPages={this.totalPage}
+            onPageChanged={this.onSelectIndex.bind(this)}
+          />
+        </i-hstack>
         <i-hstack id="pnlTotalQuantity" gap="1rem" width="100%" margin={{ top: '1rem' }} verticalAlignment="center" horizontalAlignment="space-between" wrap="wrap">
-          <i-label caption="$totalQuantity" font={{ size: '1rem', bold: true }} />
+          <i-label caption="$total_quantity" font={{ size: '1rem', bold: true }} />
           <i-label id="lbTotalQuantity" font={{ size: '1rem', bold: true }} />
         </i-hstack>
         <i-hstack id="pnlTotalPrice" gap="1rem" width="100%" margin={{ top: '1rem' }} verticalAlignment="center" horizontalAlignment="space-between" wrap="wrap">
