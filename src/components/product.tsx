@@ -78,7 +78,7 @@ export default class ShoppingCartProduct extends Module {
     }
     this.lbName.caption = name;
     this.lbDescription.caption = description || '';
-    if (description) {
+    if (description && innerWidth <= 480) {
       this.lbDescription.tooltip.content = description;
     }
     this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 2 })}`;
@@ -89,8 +89,8 @@ export default class ShoppingCartProduct extends Module {
   }
 
   private handleDelete() {
-    this.mdAlert.title = this.i18n.get('$confirmDeletion');
-    this.mdAlert.content = `${this.i18n.get('$areYouSureYouWantToDelete')} <b>${this.product.name}</b>?`;
+    this.mdAlert.title = this.i18n.get('$confirm_deletion');
+    this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete', { name: `<b>${this.product.name}</b>` });
     this.mdAlert.showModal();
   }
 
@@ -160,7 +160,8 @@ export default class ShoppingCartProduct extends Module {
 
   render() {
     return (
-      <i-panel width="100%" height="100%">
+      <i-panel width="100%" height="100%" minHeight={80}
+      >
         <i-hstack
           gap="0.5rem"
           width="100%"

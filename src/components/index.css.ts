@@ -45,29 +45,3 @@ export const buttonStyle = Styles.style({
     background: Theme.colors.primary.main,
     borderRadius: 12
 })
-
-export const productListStyle = Styles.style({
-    display: 'block !important',
-    maxHeight: 'calc(100vh - 240px)',
-    overflow: 'auto',
-    paddingRight: '0.25rem',
-    $nest: {
-        '&::-webkit-scrollbar-track': {
-            borderRadius: '12px',
-            border: '1px solid transparent',
-            backgroundColor: 'unset'
-        },
-        '&::-webkit-scrollbar': {
-            height: '8px',
-            width: '8px',
-            backgroundColor: 'unset'
-        },
-        '&::-webkit-scrollbar-thumb': {
-            borderRadius: '12px',
-            background: '#63666A 0% 0% no-repeat padding-box'
-        },
-        '&::-webkit-scrollbar-thumb:hover': {
-            background: '#808080 0% 0% no-repeat padding-box'
-        },
-    }
-})

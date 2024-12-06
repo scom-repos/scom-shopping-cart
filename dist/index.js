@@ -106,8 +106,7 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
 define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-shopping-cart/formSchema.ts"], function (require, exports, formSchema_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Model = exports.MAX_PRODUCTS = void 0;
-    exports.MAX_PRODUCTS = 5;
+    exports.Model = void 0;
     class Model {
         constructor(module) {
             this.data = { title: '', products: [] };
@@ -118,7 +117,7 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         }
         set products(value) {
             this.data.products = value;
-            this.updateWidget();
+            this.updateWidget(true);
         }
         get currency() {
             if (!this.data.currency)
@@ -148,17 +147,14 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         }
         set canRemove(value) {
             this.data.canRemove = value;
-            this.updateWidget();
-        }
-        get isShowAllVisible() {
-            return this.products.length > exports.MAX_PRODUCTS;
+            this.updateWidget(true);
         }
         getData() {
             return this.data;
         }
         async setData(value) {
             this.data = value;
-            this.updateWidget();
+            this.updateWidget(true);
         }
         getTag() {
             return this.module.tag;
@@ -232,13 +228,25 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         clear() {
             this.data.products = [];
         }
+        mergeI18nData(i18nData) {
+            const mergedI18nData = {};
+            for (let i = 0; i < i18nData.length; i++) {
+                const i18nItem = i18nData[i];
+                if (!i18nItem)
+                    continue;
+                for (const key in i18nItem) {
+                    mergedI18nData[key] = { ...(mergedI18nData[key] || {}), ...(i18nItem[key] || {}) };
+                }
+            }
+            return mergedI18nData;
+        }
     }
     exports.Model = Model;
 });
 define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.productListStyle = exports.buttonStyle = exports.textEllipsis = exports.alertStyle = exports.inputStyle = exports.textRight = void 0;
+    exports.buttonStyle = exports.textEllipsis = exports.alertStyle = exports.inputStyle = exports.textRight = void 0;
     const Theme = components_1.Styles.Theme.ThemeVars;
     exports.textRight = components_1.Styles.style({
         textAlign: 'right'
@@ -280,31 +288,6 @@ define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports"
         background: Theme.colors.primary.main,
         borderRadius: 12
     });
-    exports.productListStyle = components_1.Styles.style({
-        display: 'block !important',
-        maxHeight: 'calc(100vh - 240px)',
-        overflow: 'auto',
-        paddingRight: '0.25rem',
-        $nest: {
-            '&::-webkit-scrollbar-track': {
-                borderRadius: '12px',
-                border: '1px solid transparent',
-                backgroundColor: 'unset'
-            },
-            '&::-webkit-scrollbar': {
-                height: '8px',
-                width: '8px',
-                backgroundColor: 'unset'
-            },
-            '&::-webkit-scrollbar-thumb': {
-                borderRadius: '12px',
-                background: '#63666A 0% 0% no-repeat padding-box'
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-                background: '#808080 0% 0% no-repeat padding-box'
-            },
-        }
-    });
 });
 define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -312,34 +295,28 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
     ///<amd-module name='@scom/scom-shopping-cart/translations.json.ts'/> 
     exports.default = {
         "en": {
-            "shoppingCart": "Shopping Cart",
-            "showAll": "Show All",
             "total": "Total",
-            "totalQuantity": "Total Quantity",
+            "total_quantity": "Total Quantity",
             "checkout": "Checkout",
-            "noProduct": "No products!",
-            "confirmDeletion": "Confirm Deletion",
-            "areYouSureYouWantToDelete": "Are you sure you want to detele"
+            "no_product": "No products!",
+            "confirm_deletion": "Confirm Deletion",
+            "are_you_sure_you_want_to_delete": "Are you sure you want to detele {{name}}?"
         },
         "zh-hant": {
-            "shoppingCart": "購物車",
-            "showAll": "顯示全部",
             "total": "總計",
-            "totalQuantity": "總數量",
+            "total_quantity": "總數量",
             "checkout": "結帳",
-            "noProduct": "沒有產品！",
-            "confirmDeletion": "確認刪除",
-            "areYouSureYouWantToDelete": "您確定要刪除嗎？"
+            "no_product": "沒有產品！",
+            "confirm_deletion": "確認刪除",
+            "are_you_sure_you_want_to_delete": "您確定要刪除 {{name}} 嗎?"
         },
         "vi": {
-            "shoppingCart": "Giỏ hàng",
-            "showAll": "Hiển thị tất cả",
             "total": "Tổng cộng",
-            "totalQuantity": "Tổng số lượng",
+            "total_quantity": "Tổng số lượng",
             "checkout": "Thanh toán",
-            "noProduct": "Không có sản phẩm!",
-            "confirmDeletion": "Xác nhận xóa",
-            "areYouSureYouWantToDelete": "Bạn có chắc chắn muốn xóa không?"
+            "no_product": "Không có sản phẩm!",
+            "confirm_deletion": "Xác nhận xóa",
+            "are_you_sure_you_want_to_delete": "Bạn có chắc chắn muốn xóa {{name}} không?"
         }
     };
 });
@@ -372,7 +349,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             }
             this.lbName.caption = name;
             this.lbDescription.caption = description || '';
-            if (description) {
+            if (description && innerWidth <= 480) {
                 this.lbDescription.tooltip.content = description;
             }
             this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 2 })}`;
@@ -382,8 +359,8 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.iconRemove.visible = this.canRemove;
         }
         handleDelete() {
-            this.mdAlert.title = this.i18n.get('$confirmDeletion');
-            this.mdAlert.content = `${this.i18n.get('$areYouSureYouWantToDelete')} <b>${this.product.name}</b>?`;
+            this.mdAlert.title = this.i18n.get('$confirm_deletion');
+            this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete', { name: `<b>${this.product.name}</b>` });
             this.mdAlert.showModal();
         }
         onConfirmDelete() {
@@ -446,7 +423,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.setProduct(product, currency, canRemove);
         }
         render() {
-            return (this.$render("i-panel", { width: "100%", height: "100%" },
+            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80 },
                 this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, wrap: "wrap" },
                     this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }, alignSelf: "start" },
                         this.$render("i-image", { id: "imgProduct", width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
@@ -469,13 +446,18 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
     ], ShoppingCartProduct);
     exports.default = ShoppingCartProduct;
 });
-define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/product.tsx", "@scom/scom-shopping-cart/model.ts", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_3, product_1, model_1, index_css_2, translations_json_2) {
+define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/product.tsx", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_3, product_1, index_css_2, translations_json_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const pageSize = 5;
     let ShoppingCartProductList = class ShoppingCartProductList extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
             this.listProductElm = {};
+            this.totalPage = 0;
+            this.pageNumber = 0;
+            this.itemStart = 0;
+            this.itemEnd = pageSize;
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -509,6 +491,9 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
         get canRemove() {
             return this.model.canRemove;
         }
+        get paginatedProducts() {
+            return this.products.slice(this.itemStart, this.itemEnd);
+        }
         handleCheckout() {
             if (this.onCheckout)
                 this.onCheckout();
@@ -523,12 +508,12 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
                 this.onQuantityUpdated(id, quantity);
             this.updateTotalValues();
         }
-        handleRemoveProduct(id) {
-            const elm = this.listProductElm[`product-${id}`];
-            if (elm && this.pnlProducts.contains(elm)) {
-                this.pnlProducts.removeChild(elm);
+        handleRemoveProduct(id, idx) {
+            if ((this.products.length % pageSize) === 0 && idx === this.products.length) {
+                this.pageNumber = this.pageNumber - 1;
+                this.paginationElm.currentPage = this.pageNumber;
             }
-            this.updateTotalValues();
+            this.updatePaginationData();
         }
         updateQuantityFromParent(id, quantity) {
             this.listProductElm[`product-${id}`]?.updateQuantityFromParent(quantity);
@@ -538,44 +523,54 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             this.lbTotalPrice.caption = `${this.currencyText} ${components_3.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
             this.lbTotalQuantity.caption = `${components_3.FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
         }
-        renderProducts(isLimited) {
+        async onSelectIndex() {
+            if (!this.model)
+                return;
+            this.pageNumber = this.paginationElm.currentPage;
+            this.updatePaginationData();
+        }
+        updatePaginationData() {
+            this.itemStart = (this.pageNumber - 1) * pageSize;
+            this.itemEnd = this.itemStart + pageSize;
+            this.renderProducts();
+        }
+        resetPagination() {
+            this.pageNumber = 1;
+            this.paginationElm.currentPage = 1;
+            this.itemStart = 0;
+            this.itemEnd = this.itemStart + pageSize;
+        }
+        renderProducts(resetPaging) {
             if (!this.pnlProducts)
                 return;
+            if (resetPaging) {
+                this.resetPagination();
+            }
             if (!this.products || !this.products.length) {
                 this.pnlTotalQuantity.visible = false;
                 this.pnlTotalPrice.visible = false;
                 this.pnlBtnCheckout.visible = false;
-                this.pnlProducts.classList.remove(index_css_2.productListStyle);
+                this.paginationElm.visible = false;
                 this.listProductElm = {};
                 this.pnlProducts.clearInnerHTML();
-                this.pnlProducts.appendChild(this.$render("i-label", { caption: "$noProduct", font: { size: '1rem' }, padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, margin: { left: 'auto', right: 'auto' } }));
+                this.pnlProducts.appendChild(this.$render("i-label", { caption: this.i18n.get('$no_product'), font: { size: '1rem' }, padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, margin: { left: 'auto', right: 'auto' } }));
                 return;
             }
+            this.totalPage = Math.ceil(this.products.length / pageSize);
+            this.paginationElm.visible = this.totalPage > 1;
             this.listProductElm = {};
             const nodeItems = [];
-            const isLimitedProducts = isLimited && this.model.isShowAllVisible;
-            this.pnlTotalPrice.visible = !isLimitedProducts;
-            this.pnlBtnCheckout.visible = !isLimitedProducts;
+            this.pnlTotalPrice.visible = true;
+            this.pnlBtnCheckout.visible = true;
             this.pnlTotalQuantity.visible = true;
-            const length = isLimitedProducts ? model_1.MAX_PRODUCTS : this.products.length;
-            for (let i = 0; i < length; i++) {
-                const product = this.products[i];
+            for (let i = 0; i < this.paginatedProducts.length; i++) {
+                const product = this.paginatedProducts[i];
                 const shoppingCartProduct = new product_1.default();
                 this.listProductElm[`product-${product.id}`] = shoppingCartProduct;
-                if (!isLimited) {
-                    shoppingCartProduct.display = 'block';
-                    shoppingCartProduct.margin = { top: '1rem' };
-                }
                 shoppingCartProduct.onQuantityUpdated = this.updateQuantity.bind(this);
                 shoppingCartProduct.onProductRemoved = this.removeProduct.bind(this);
                 shoppingCartProduct.setProduct(product, this.currencyText, this.canRemove);
                 nodeItems.push(shoppingCartProduct);
-            }
-            if (isLimited) {
-                this.pnlProducts.classList.remove(index_css_2.productListStyle);
-            }
-            else {
-                this.pnlProducts.classList.add(index_css_2.productListStyle);
             }
             this.pnlProducts.clearInnerHTML();
             this.pnlProducts.append(...nodeItems);
@@ -594,8 +589,10 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
         render() {
             return (this.$render("i-panel", { width: "100%", height: "100%" },
                 this.$render("i-vstack", { id: "pnlProducts", gap: "1rem", width: "100%", verticalAlignment: "center" }),
+                this.$render("i-hstack", { margin: { top: '1rem', bottom: '1rem' }, justifyContent: "end" },
+                    this.$render("i-pagination", { id: "paginationElm", width: "auto", currentPage: this.pageNumber, totalPages: this.totalPage, onPageChanged: this.onSelectIndex.bind(this) })),
                 this.$render("i-hstack", { id: "pnlTotalQuantity", gap: "1rem", width: "100%", margin: { top: '1rem' }, verticalAlignment: "center", horizontalAlignment: "space-between", wrap: "wrap" },
-                    this.$render("i-label", { caption: "$totalQuantity", font: { size: '1rem', bold: true } }),
+                    this.$render("i-label", { caption: "$total_quantity", font: { size: '1rem', bold: true } }),
                     this.$render("i-label", { id: "lbTotalQuantity", font: { size: '1rem', bold: true } })),
                 this.$render("i-hstack", { id: "pnlTotalPrice", gap: "1rem", width: "100%", margin: { top: '1rem' }, verticalAlignment: "center", horizontalAlignment: "space-between", wrap: "wrap" },
                     this.$render("i-label", { caption: "$total", font: { size: '1rem', bold: true } }),
@@ -604,25 +601,26 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
                     this.$render("i-button", { caption: "$checkout", class: index_css_2.buttonStyle, onClick: this.handleCheckout }))));
         }
     };
+    __decorate([
+        (0, components_3.observable)()
+    ], ShoppingCartProductList.prototype, "totalPage", void 0);
     ShoppingCartProductList = __decorate([
         components_3.customModule,
         (0, components_3.customElements)('i-scom-shopping-cart--product-list')
     ], ShoppingCartProductList);
     exports.default = ShoppingCartProductList;
 });
-define("@scom/scom-shopping-cart/components/index.ts", ["require", "exports", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/components/productList.tsx"], function (require, exports, index_css_3, productList_1) {
+define("@scom/scom-shopping-cart/components/index.ts", ["require", "exports", "@scom/scom-shopping-cart/components/productList.tsx"], function (require, exports, productList_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ShoppingCartProductList = exports.buttonStyle = void 0;
-    Object.defineProperty(exports, "buttonStyle", { enumerable: true, get: function () { return index_css_3.buttonStyle; } });
+    exports.ShoppingCartProductList = void 0;
     exports.ShoppingCartProductList = productList_1.default;
 });
-define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/interface.ts", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/components/index.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, interface_1, model_2, scom_payment_widget_1, index_1, translations_json_3) {
+define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/interface.ts", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, interface_1, model_1, scom_payment_widget_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProductType = void 0;
     Object.defineProperty(exports, "ProductType", { enumerable: true, get: function () { return interface_1.ProductType; } });
-    const Theme = components_4.Styles.Theme.ThemeVars;
     let ScomShoppingCart = class ScomShoppingCart extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -680,21 +678,14 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.renderProducts();
         }
         removeProduct(id) {
+            const idx = this.products.findIndex(v => v.id === id);
             this.model.removeProduct(id);
             if (!this.model.products.length) {
-                this.renderProducts();
+                this.renderProducts(true);
                 return;
             }
             if (this.productListElm) {
-                if (this.model.products.length === model_2.MAX_PRODUCTS) {
-                    this.renderProducts(true);
-                }
-                else {
-                    this.productListElm.handleRemoveProduct(id);
-                }
-            }
-            if (this.allProductListElm) {
-                this.allProductListElm.handleRemoveProduct(id);
+                this.productListElm.handleRemoveProduct(id, idx);
             }
         }
         updateQuantity(id, quantity) {
@@ -702,13 +693,10 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             if (this.productListElm) {
                 this.productListElm.updateQuantityFromParent(id, quantity);
             }
-            if (this.allProductListElm) {
-                this.allProductListElm.updateQuantityFromParent(id, quantity);
-            }
         }
         clear() {
             this.model.clear();
-            this.renderProducts();
+            this.renderProducts(true);
         }
         handleUpdateQuantity(id, quantity) {
             this.updateQuantity(id, quantity);
@@ -721,40 +709,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             if (this.onProductRemoved)
                 this.onProductRemoved(id);
         }
-        renderProducts(updateLimited) {
+        renderProducts(resetPaging) {
             if (!this.productListElm)
                 return;
-            this.productListElm.renderProducts(true);
-            const isShowAllVisible = this.model.isShowAllVisible;
-            this.wrapperShowAll.visible = isShowAllVisible;
-            if (isShowAllVisible && this.allProductListElm && !updateLimited) {
-                this.allProductListElm.renderProducts();
-            }
-        }
-        async handleShowAll() {
-            if (!this.allProductListElm) {
-                this.allProductListElm = new index_1.ShoppingCartProductList();
-                this.allProductListElm.model = this.model;
-                this.allProductListElm.onCheckout = this.handleCheckout.bind(this);
-                this.allProductListElm.onProductRemoved = this.handleRemoveProduct.bind(this);
-                this.allProductListElm.onQuantityUpdated = this.handleUpdateQuantity.bind(this);
-                this.allProductListElm.initTranslations(this._translations);
-            }
-            const modal = this.allProductListElm.openModal({
-                title: '$shoppingCart',
-                closeIcon: { name: 'times', fill: Theme.colors.primary.main },
-                width: 480,
-                maxWidth: '100%',
-                padding: { left: '1rem', right: '1rem', top: '0.75rem', bottom: '0.75rem' },
-                border: { radius: '1rem' }
-            });
-            await this.allProductListElm.ready();
-            this.allProductListElm.renderProducts();
-            modal.refresh();
+            this.productListElm.renderProducts(resetPaging);
         }
         handlePaymentSuccess(status) {
-            if (this.allProductListElm)
-                this.allProductListElm.closeModal();
             if (this.onPaymentSuccess)
                 this.onPaymentSuccess(status);
         }
@@ -774,7 +734,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         }
         initModel() {
             if (!this.model) {
-                this.model = new model_2.Model(this);
+                this.model = new model_1.Model(this);
                 this.model.updateWidget = this.renderProducts.bind(this);
             }
         }
@@ -784,11 +744,10 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
             this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
             const translationsProp = this.getAttribute('translations', true);
-            this._translations = { ...translations_json_3.default, ...translationsProp };
+            this._translations = this.model.mergeI18nData([translations_json_3.default, translationsProp]);
             this.i18n.init({ ...this._translations });
             this.productListElm.initTranslations(this._translations);
             this.productListElm.model = this.model;
-            this.btnShowAll.caption = this.i18n.get('$showAll');
             const lazyLoad = this.getAttribute('lazyLoad', true, false);
             if (!lazyLoad) {
                 const title = this.getAttribute('title', true);
@@ -802,9 +761,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         }
         render() {
             return (this.$render("i-panel", { width: "100%", height: "100%", border: { radius: '0.5rem' }, overflow: "hidden" },
-                this.$render("i-scom-shopping-cart--product-list", { id: "productListElm", onCheckout: this.handleCheckout, onProductRemoved: this.handleRemoveProduct, onQuantityUpdated: this.handleUpdateQuantity }),
-                this.$render("i-vstack", { id: "wrapperShowAll", visible: false, width: "100%", verticalAlignment: "center" },
-                    this.$render("i-button", { id: "btnShowAll", class: index_1.buttonStyle, onClick: this.handleShowAll }))));
+                this.$render("i-scom-shopping-cart--product-list", { id: "productListElm", onCheckout: this.handleCheckout, onProductRemoved: this.handleRemoveProduct, onQuantityUpdated: this.handleUpdateQuantity })));
         }
     };
     ScomShoppingCart = __decorate([

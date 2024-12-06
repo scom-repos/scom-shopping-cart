@@ -4,18 +4,13 @@ import {
     Container,
     ControlElement,
     customElements,
-    Styles,
-    VStack,
-    Button,
 } from '@ijstech/components';
 import { IProduct, IShoppingCart, ProductType } from './interface';
-import { MAX_PRODUCTS, Model } from './model';
+import { Model } from './model';
 import { ScomPaymentWidget } from '@scom/scom-payment-widget';
-import { buttonStyle, ShoppingCartProductList } from './components/index';
+import { ShoppingCartProductList } from './components/index';
 import translations from './translations.json';
 export { ProductType };
-
-const Theme = Styles.Theme.ThemeVars;
 
 interface ScomShoppingCartElement extends ControlElement {
     translations?: any;
@@ -42,10 +37,7 @@ export default class ScomShoppingCart extends Module {
     private _translations: any;
     private model: Model;
     private productListElm: ShoppingCartProductList;
-    private allProductListElm: ShoppingCartProductList;
     private scomPaymentWidget: ScomPaymentWidget;
-    private wrapperShowAll: VStack;
-    private btnShowAll: Button;
 
     tag: any = {};
     onPaymentSuccess: (status: string) => void;
@@ -123,20 +115,14 @@ export default class ScomShoppingCart extends Module {
     }
 
     removeProduct(id: string) {
+        const idx = this.products.findIndex(v => v.id === id);
         this.model.removeProduct(id);
         if (!this.model.products.length) {
-            this.renderProducts();
+            this.renderProducts(true);
             return;
         }
         if (this.productListElm) {
-            if (this.model.products.length === MAX_PRODUCTS) {
-                this.renderProducts(true);
-            } else {
-                this.productListElm.handleRemoveProduct(id);
-            }
-        }
-        if (this.allProductListElm) {
-            this.allProductListElm.handleRemoveProduct(id);
+            this.productListElm.handleRemoveProduct(id, idx);
         }
     }
 
@@ -145,14 +131,11 @@ export default class ScomShoppingCart extends Module {
         if (this.productListElm) {
             this.productListElm.updateQuantityFromParent(id, quantity);
         }
-        if (this.allProductListElm) {
-            this.allProductListElm.updateQuantityFromParent(id, quantity);
-        }
     }
 
     clear() {
         this.model.clear();
-        this.renderProducts();
+        this.renderProducts(true);
     }
 
     private handleUpdateQuantity(id: string, quantity: number) {
@@ -167,40 +150,12 @@ export default class ScomShoppingCart extends Module {
         if (this.onProductRemoved) this.onProductRemoved(id);
     }
 
-    private renderProducts(updateLimited?: boolean) {
+    private renderProducts(resetPaging?: boolean) {
         if (!this.productListElm) return;
-        this.productListElm.renderProducts(true);
-        const isShowAllVisible = this.model.isShowAllVisible;
-        this.wrapperShowAll.visible = isShowAllVisible;
-        if (isShowAllVisible && this.allProductListElm && !updateLimited) {
-            this.allProductListElm.renderProducts();
-        }
-    }
-
-    private async handleShowAll() {
-        if (!this.allProductListElm) {
-            this.allProductListElm = new ShoppingCartProductList();
-            this.allProductListElm.model = this.model;
-            this.allProductListElm.onCheckout = this.handleCheckout.bind(this);
-            this.allProductListElm.onProductRemoved = this.handleRemoveProduct.bind(this);
-            this.allProductListElm.onQuantityUpdated = this.handleUpdateQuantity.bind(this);
-            this.allProductListElm.initTranslations(this._translations);
-        }
-        const modal = this.allProductListElm.openModal({
-            title: '$shoppingCart',
-            closeIcon: { name: 'times', fill: Theme.colors.primary.main },
-            width: 480,
-            maxWidth: '100%',
-            padding: { left: '1rem', right: '1rem', top: '0.75rem', bottom: '0.75rem' },
-            border: { radius: '1rem' }
-        });
-        await this.allProductListElm.ready();
-        this.allProductListElm.renderProducts();
-        modal.refresh();
+        this.productListElm.renderProducts(resetPaging);
     }
 
     private handlePaymentSuccess(status: string) {
-        if (this.allProductListElm) this.allProductListElm.closeModal();
         if (this.onPaymentSuccess) this.onPaymentSuccess(status);
     }
 
@@ -232,11 +187,10 @@ export default class ScomShoppingCart extends Module {
         this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
         this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
         const translationsProp = this.getAttribute('translations', true);
-        this._translations = { ...translations, ...translationsProp };
+        this._translations = this.model.mergeI18nData([translations, translationsProp]);
         this.i18n.init({ ...this._translations });
         this.productListElm.initTranslations(this._translations);
         this.productListElm.model = this.model;
-        this.btnShowAll.caption = this.i18n.get('$showAll');
         const lazyLoad = this.getAttribute('lazyLoad', true, false);
         if (!lazyLoad) {
             const title = this.getAttribute('title', true);
@@ -258,9 +212,6 @@ export default class ScomShoppingCart extends Module {
                     onProductRemoved={this.handleRemoveProduct}
                     onQuantityUpdated={this.handleUpdateQuantity}
                 />
-                <i-vstack id="wrapperShowAll" visible={false} width="100%" verticalAlignment="center">
-                    <i-button id="btnShowAll" class={buttonStyle} onClick={this.handleShowAll} />
-                </i-vstack>
             </i-panel>
         )
     }
