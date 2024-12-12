@@ -5,12 +5,11 @@ import {
     ControlElement,
     customElements,
 } from '@ijstech/components';
-import { IProduct, IShoppingCart, ProductType } from './interface';
+import { IProduct, IShoppingCart } from './interface';
 import { Model } from './model';
-import { ScomPaymentWidget } from '@scom/scom-payment-widget';
+import { IPaymentActivity, IPlaceOrder, ScomPaymentWidget } from '@scom/scom-payment-widget';
 import { ShoppingCartProductList } from './components/index';
 import translations from './translations.json';
-export { ProductType };
 
 interface ScomShoppingCartElement extends ControlElement {
     translations?: any;
@@ -18,9 +17,10 @@ interface ScomShoppingCartElement extends ControlElement {
     products?: IProduct[];
     currency?: string;
     canRemove?: boolean;
-    onPaymentSuccess?: (status: string) => void;
     onQuantityUpdated?: (id: string, quantity: number) => void;
     onProductRemoved?: (id: string) => void;
+    onPaymentSuccess?: (data: IPaymentActivity) => void;
+	placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
 }
 
 declare global {
@@ -40,9 +40,10 @@ export default class ScomShoppingCart extends Module {
     private scomPaymentWidget: ScomPaymentWidget;
 
     tag: any = {};
-    onPaymentSuccess: (status: string) => void;
     onQuantityUpdated: (id: string, quantity: number) => void;
     onProductRemoved: (id: string) => void;
+    onPaymentSuccess: (data: IPaymentActivity) => Promise<void>;
+    placeMarketplaceOrder: (data: IPlaceOrder) => Promise<void>;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -155,14 +156,19 @@ export default class ScomShoppingCart extends Module {
         this.productListElm.renderProducts(resetPaging);
     }
 
-    private handlePaymentSuccess(status: string) {
-        if (this.onPaymentSuccess) this.onPaymentSuccess(status);
+    private async handlePaymentSuccess(data: IPaymentActivity) {
+        if (this.onPaymentSuccess) await this.onPaymentSuccess(data);
+    }
+
+    private async handlePlaceMarketplaceOrder(data: IPlaceOrder) {
+        if (this.placeMarketplaceOrder) await this.placeMarketplaceOrder(data);
     }
 
     private async handleCheckout() {
         if (!this.scomPaymentWidget) {
             this.scomPaymentWidget = new ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
             this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
+            this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
             this.appendChild(this.scomPaymentWidget);
             await this.scomPaymentWidget.ready();
         }
@@ -186,6 +192,7 @@ export default class ScomShoppingCart extends Module {
         this.onPaymentSuccess = this.getAttribute('onPaymentSuccess', true) || this.onPaymentSuccess;
         this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
         this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
+        this.placeMarketplaceOrder = this.getAttribute('placeMarketplaceOrder', true) || this.placeMarketplaceOrder;
         const translationsProp = this.getAttribute('translations', true);
         this._translations = this.model.mergeI18nData([translations, translationsProp]);
         this.i18n.init({ ...this._translations });
