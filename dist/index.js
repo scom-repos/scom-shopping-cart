@@ -7,17 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-shopping-cart/interface.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ProductType = void 0;
-    ///<amd-module name='@scom/scom-shopping-cart/interface.ts'/> 
-    var ProductType;
-    (function (ProductType) {
-        ProductType["Physical"] = "Physical";
-        ProductType["Digital"] = "Digital";
-        ProductType["Course"] = "Course";
-        ProductType["Ebook"] = "Ebook";
-        ProductType["Membership"] = "Membership";
-        ProductType["Bundle"] = "Bundle";
-    })(ProductType = exports.ProductType || (exports.ProductType = {}));
 });
 define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -616,11 +605,9 @@ define("@scom/scom-shopping-cart/components/index.ts", ["require", "exports", "@
     exports.ShoppingCartProductList = void 0;
     exports.ShoppingCartProductList = productList_1.default;
 });
-define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/interface.ts", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, interface_1, model_1, scom_payment_widget_1, translations_json_3) {
+define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, model_1, scom_payment_widget_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ProductType = void 0;
-    Object.defineProperty(exports, "ProductType", { enumerable: true, get: function () { return interface_1.ProductType; } });
     let ScomShoppingCart = class ScomShoppingCart extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -714,14 +701,19 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 return;
             this.productListElm.renderProducts(resetPaging);
         }
-        handlePaymentSuccess(status) {
+        async handlePaymentSuccess(data) {
             if (this.onPaymentSuccess)
-                this.onPaymentSuccess(status);
+                await this.onPaymentSuccess(data);
+        }
+        async handlePlaceMarketplaceOrder(data) {
+            if (this.placeMarketplaceOrder)
+                await this.placeMarketplaceOrder(data);
         }
         async handleCheckout() {
             if (!this.scomPaymentWidget) {
                 this.scomPaymentWidget = new scom_payment_widget_1.ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
                 this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
+                this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
                 this.appendChild(this.scomPaymentWidget);
                 await this.scomPaymentWidget.ready();
             }
@@ -743,6 +735,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.onPaymentSuccess = this.getAttribute('onPaymentSuccess', true) || this.onPaymentSuccess;
             this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
             this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
+            this.placeMarketplaceOrder = this.getAttribute('placeMarketplaceOrder', true) || this.placeMarketplaceOrder;
             const translationsProp = this.getAttribute('translations', true);
             this._translations = this.model.mergeI18nData([translations_json_3.default, translationsProp]);
             this.i18n.init({ ...this._translations });

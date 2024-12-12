@@ -1,13 +1,6 @@
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
 declare module "@scom/scom-shopping-cart/interface.ts" {
-    export enum ProductType {
-        Physical = "Physical",
-        Digital = "Digital",
-        Course = "Course",
-        Ebook = "Ebook",
-        Membership = "Membership",
-        Bundle = "Bundle"
-    }
+    import { ProductType } from "@scom/scom-payment-widget";
     export interface IShoppingCart {
         title: string;
         products: IProduct[];
@@ -402,17 +395,18 @@ declare module "@scom/scom-shopping-cart/components/index.ts" {
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IProduct, IShoppingCart, ProductType } from "@scom/scom-shopping-cart/interface.ts";
-    export { ProductType };
+    import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IPaymentActivity, IPlaceOrder } from '@scom/scom-payment-widget';
     interface ScomShoppingCartElement extends ControlElement {
         translations?: any;
         title?: string;
         products?: IProduct[];
         currency?: string;
         canRemove?: boolean;
-        onPaymentSuccess?: (status: string) => void;
         onQuantityUpdated?: (id: string, quantity: number) => void;
         onProductRemoved?: (id: string) => void;
+        onPaymentSuccess?: (data: IPaymentActivity) => void;
+        placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
     }
     global {
         namespace JSX {
@@ -427,9 +421,10 @@ declare module "@scom/scom-shopping-cart" {
         private productListElm;
         private scomPaymentWidget;
         tag: any;
-        onPaymentSuccess: (status: string) => void;
         onQuantityUpdated: (id: string, quantity: number) => void;
         onProductRemoved: (id: string) => void;
+        onPaymentSuccess: (data: IPaymentActivity) => Promise<void>;
+        placeMarketplaceOrder: (data: IPlaceOrder) => Promise<void>;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomShoppingCartElement, parent?: Container): Promise<ScomShoppingCart>;
         get products(): IProduct[];
@@ -546,6 +541,7 @@ declare module "@scom/scom-shopping-cart" {
         private handleRemoveProduct;
         private renderProducts;
         private handlePaymentSuccess;
+        private handlePlaceMarketplaceOrder;
         private handleCheckout;
         private initModel;
         init(): Promise<void>;

@@ -1,11 +1,4 @@
-export enum ProductType {
-	Physical = "Physical",
-	Digital = "Digital",
-	Course = "Course",
-	Ebook = "Ebook",
-	Membership = "Membership",
-	Bundle = "Bundle"
-}
+import { ProductType } from "@scom/scom-payment-widget";
 
 export interface IShoppingCart {
     title: string;
