@@ -131,6 +131,18 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         get totalQuantity() {
             return this.products?.reduce((sum, item) => sum + item.quantity, 0) || 0;
         }
+        get returnUrl() {
+            return this.data.returnUrl;
+        }
+        set returnUrl(value) {
+            this.data.returnUrl = value;
+        }
+        get baseStripeApi() {
+            return this.data.baseStripeApi;
+        }
+        set baseStripeApi(value) {
+            this.data.baseStripeApi = value;
+        }
         get canRemove() {
             return this.data.canRemove || false;
         }
@@ -625,6 +637,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         set products(value) {
             this.model.products = value;
         }
+        get returnUrl() {
+            return this.model.returnUrl;
+        }
+        get baseStripeApi() {
+            return this.model.baseStripeApi;
+        }
         get currency() {
             return this.model.currency;
         }
@@ -712,6 +730,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         async handleCheckout() {
             if (!this.scomPaymentWidget) {
                 this.scomPaymentWidget = new scom_payment_widget_1.ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
+                this.scomPaymentWidget.returnUrl = this.returnUrl;
+                this.scomPaymentWidget.baseStripeApi = this.baseStripeApi;
                 this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
                 this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
                 this.appendChild(this.scomPaymentWidget);
@@ -746,9 +766,11 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 const title = this.getAttribute('title', true);
                 const currency = this.getAttribute('currency', true);
                 const products = this.getAttribute('products', true);
+                const returnUrl = this.getAttribute('returnUrl', true);
+                const baseStripeApi = this.getAttribute('baseStripeApi', true);
                 const canRemove = this.getAttribute('canRemove', true, false);
                 if (products) {
-                    this.setData({ title, products, currency, canRemove });
+                    this.setData({ title, products, currency, returnUrl, baseStripeApi, canRemove });
                 }
             }
         }

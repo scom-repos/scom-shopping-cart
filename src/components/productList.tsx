@@ -12,7 +12,7 @@ import {
   observable
 } from '@ijstech/components';
 import ShoppingCartProduct from './product';
-import { IProduct } from '../interface';
+import { IShoppingCartProduct } from '../interface';
 import { Model } from '../model';
 import { buttonStyle } from './index.css';
 import translations from '../translations.json';
@@ -78,7 +78,7 @@ export default class ShoppingCartProductList extends Module {
     return this.model.products;
   }
 
-  set products(value: IProduct[]) {
+  set products(value: IShoppingCartProduct[]) {
     this.model.products = value;
   }
 

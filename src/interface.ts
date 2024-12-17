@@ -1,32 +1,14 @@
-import { ProductType } from "@scom/scom-payment-widget";
+import { IProduct } from "@scom/scom-payment-widget";
 
 export interface IShoppingCart {
     title: string;
     products: IProduct[];
     currency?: string;
+    returnUrl?: string;
+    baseStripeApi?: string;
     canRemove?: boolean;
     // payment info - TODO
 }
-
-export interface IShippingInfo {
-    id: string;
-    name?: string;
-    cost: number;
-    regions?: string[];
-}
-
-export interface IProduct {
-    id: string;
-    stallId?: string;
-    productType?: ProductType;
-    name: string;
-    description?: string;
-    images: string[];
-    currency?: string;
-    price: number;
-    quantity: number;
+export interface IShoppingCartProduct extends IProduct {
     available?: number;
-    shippingInfo?: IShippingInfo[];
-    communityUri?: string;
-    stallUri?: string;
 }

@@ -1,5 +1,5 @@
 import { Module } from '@ijstech/components';
-import { IProduct, IShoppingCart } from './interface';
+import { IShoppingCartProduct, IShoppingCart } from './interface';
 import formSchema from './formSchema';
 
 export class Model {
@@ -15,7 +15,7 @@ export class Model {
     return this.data.products || [];
   }
 
-  set products(value: IProduct[]) {
+  set products(value: IShoppingCartProduct[]) {
     this.data.products = value;
     this.updateWidget(true);
   }
@@ -47,6 +47,22 @@ export class Model {
 
   get totalQuantity() {
     return this.products?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  }
+
+  get returnUrl() {
+    return this.data.returnUrl;
+  }
+
+  set returnUrl(value: string) {
+    this.data.returnUrl = value;
+  }
+
+  get baseStripeApi() {
+    return this.data.baseStripeApi;
+  }
+
+  set baseStripeApi(value: string) {
+    this.data.baseStripeApi = value;
   }
 
   get canRemove() {
@@ -117,11 +133,11 @@ export class Model {
     return actions;
   }
 
-  addProduct(product: IProduct) {
+  addProduct(product: IShoppingCartProduct) {
     this.data.products.push(product);
   }
 
-  addProducts(products: IProduct[]) {
+  addProducts(products: IShoppingCartProduct[]) {
     this.data.products.push(...products);
   }
 

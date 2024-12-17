@@ -13,13 +13,13 @@ import {
   Image
 } from '@ijstech/components';
 import { alertStyle, inputStyle, textEllipsis, textRight } from './index.css';
-import { IProduct } from '../interface';
+import { IShoppingCartProduct } from '../interface';
 import translations from '../translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomShoppingCartProductElement extends ControlElement {
-  product?: IProduct;
+  product?: IShoppingCartProduct;
   currency?: string;
   canRemove?: boolean;
   onQuantityUpdated: (id: string, quantity: number) => void;
@@ -37,7 +37,7 @@ declare global {
 @customModule
 @customElements('i-scom-shopping-cart--product')
 export default class ShoppingCartProduct extends Module {
-  private product: IProduct;
+  private product: IShoppingCartProduct;
   private currency: string;
   private canRemove: boolean = false;
   private iconRemove: Input;
@@ -63,7 +63,7 @@ export default class ShoppingCartProduct extends Module {
     return self;
   }
 
-  setProduct(product: IProduct, currency: string, canRemove?: boolean) {
+  setProduct(product: IShoppingCartProduct, currency: string, canRemove?: boolean) {
     this.product = product;
     this.currency = currency || 'USD';
     this.canRemove = canRemove || false;

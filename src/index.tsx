@@ -5,7 +5,7 @@ import {
     ControlElement,
     customElements,
 } from '@ijstech/components';
-import { IProduct, IShoppingCart } from './interface';
+import { IShoppingCartProduct, IShoppingCart } from './interface';
 import { Model } from './model';
 import { IPaymentActivity, IPlaceOrder, ScomPaymentWidget } from '@scom/scom-payment-widget';
 import { ShoppingCartProductList } from './components/index';
@@ -14,9 +14,11 @@ import translations from './translations.json';
 interface ScomShoppingCartElement extends ControlElement {
     translations?: any;
     title?: string;
-    products?: IProduct[];
+    products?: IShoppingCartProduct[];
     currency?: string;
     canRemove?: boolean;
+    returnUrl?: string;
+    baseStripeApi?: string;
     onQuantityUpdated?: (id: string, quantity: number) => void;
     onProductRemoved?: (id: string) => void;
     onPaymentSuccess?: (data: IPaymentActivity) => void;
@@ -60,8 +62,16 @@ export default class ScomShoppingCart extends Module {
         return this.model.products;
     }
 
-    set products(value: IProduct[]) {
+    set products(value: IShoppingCartProduct[]) {
         this.model.products = value;
+    }
+
+    get returnUrl() {
+        return this.model.returnUrl;
+    }
+
+    get baseStripeApi() {
+        return this.model.baseStripeApi;
     }
 
     get currency() {
@@ -105,12 +115,12 @@ export default class ScomShoppingCart extends Module {
         this.model.setTag(value);
     }
 
-    addProduct(product: IProduct) {
+    addProduct(product: IShoppingCartProduct) {
         this.model.addProduct(product);
         this.renderProducts();
     }
 
-    addProducts(products: IProduct[]) {
+    addProducts(products: IShoppingCartProduct[]) {
         this.model.addProducts(products);
         this.renderProducts();
     }
@@ -167,6 +177,8 @@ export default class ScomShoppingCart extends Module {
     private async handleCheckout() {
         if (!this.scomPaymentWidget) {
             this.scomPaymentWidget = new ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
+            this.scomPaymentWidget.returnUrl = this.returnUrl;
+            this.scomPaymentWidget.baseStripeApi = this.baseStripeApi;
             this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
             this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
             this.appendChild(this.scomPaymentWidget);
@@ -203,9 +215,11 @@ export default class ScomShoppingCart extends Module {
             const title = this.getAttribute('title', true);
             const currency = this.getAttribute('currency', true);
             const products = this.getAttribute('products', true);
+            const returnUrl = this.getAttribute('returnUrl', true);
+            const baseStripeApi = this.getAttribute('baseStripeApi', true);
             const canRemove = this.getAttribute('canRemove', true, false);
             if (products) {
-                this.setData({ title, products, currency, canRemove });
+                this.setData({ title, products, currency, returnUrl, baseStripeApi, canRemove });
             }
         }
     }
