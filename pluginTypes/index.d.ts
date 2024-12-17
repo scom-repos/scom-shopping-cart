@@ -1,32 +1,16 @@
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
 declare module "@scom/scom-shopping-cart/interface.ts" {
-    import { ProductType } from "@scom/scom-payment-widget";
+    import { IProduct } from "@scom/scom-payment-widget";
     export interface IShoppingCart {
         title: string;
         products: IProduct[];
         currency?: string;
+        returnUrl?: string;
+        baseStripeApi?: string;
         canRemove?: boolean;
     }
-    export interface IShippingInfo {
-        id: string;
-        name?: string;
-        cost: number;
-        regions?: string[];
-    }
-    export interface IProduct {
-        id: string;
-        stallId?: string;
-        productType?: ProductType;
-        name: string;
-        description?: string;
-        images: string[];
-        currency?: string;
-        price: number;
-        quantity: number;
+    export interface IShoppingCartProduct extends IProduct {
         available?: number;
-        shippingInfo?: IShippingInfo[];
-        communityUri?: string;
-        stallUri?: string;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/formSchema.ts" />
@@ -115,14 +99,14 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
 /// <amd-module name="@scom/scom-shopping-cart/model.ts" />
 declare module "@scom/scom-shopping-cart/model.ts" {
     import { Module } from '@ijstech/components';
-    import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
     export class Model {
         private module;
         private data;
         updateWidget: (reset: boolean) => void;
         constructor(module: Module);
-        get products(): IProduct[];
-        set products(value: IProduct[]);
+        get products(): IShoppingCartProduct[];
+        set products(value: IShoppingCartProduct[]);
         get currency(): string;
         set currency(value: string);
         get currencyText(): string;
@@ -130,6 +114,10 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         set title(value: string);
         get totalPrice(): number;
         get totalQuantity(): number;
+        get returnUrl(): string;
+        set returnUrl(value: string);
+        get baseStripeApi(): string;
+        set baseStripeApi(value: string);
         get canRemove(): boolean;
         set canRemove(value: boolean);
         getData(): IShoppingCart;
@@ -231,8 +219,8 @@ declare module "@scom/scom-shopping-cart/model.ts" {
             setTag: any;
         }[];
         private _getActions;
-        addProduct(product: IProduct): void;
-        addProducts(products: IProduct[]): void;
+        addProduct(product: IShoppingCartProduct): void;
+        addProducts(products: IShoppingCartProduct[]): void;
         removeProduct(id: string | number): void;
         updateQuantity(id: string | number, quantity: number): void;
         clear(): void;
@@ -280,9 +268,9 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
 /// <amd-module name="@scom/scom-shopping-cart/components/product.tsx" />
 declare module "@scom/scom-shopping-cart/components/product.tsx" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IProduct } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct } from "@scom/scom-shopping-cart/interface.ts";
     interface ScomShoppingCartProductElement extends ControlElement {
-        product?: IProduct;
+        product?: IShoppingCartProduct;
         currency?: string;
         canRemove?: boolean;
         onQuantityUpdated: (id: string, quantity: number) => void;
@@ -312,7 +300,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         onProductRemoved: (id: string) => void;
         constructor(parent?: Container, options?: ScomShoppingCartProductElement);
         static create(options?: ScomShoppingCartProductElement, parent?: Container): Promise<ShoppingCartProduct>;
-        setProduct(product: IProduct, currency: string, canRemove?: boolean): void;
+        setProduct(product: IShoppingCartProduct, currency: string, canRemove?: boolean): void;
         private renderProduct;
         private handleDelete;
         private onConfirmDelete;
@@ -329,7 +317,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
 /// <amd-module name="@scom/scom-shopping-cart/components/productList.tsx" />
 declare module "@scom/scom-shopping-cart/components/productList.tsx" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IProduct } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct } from "@scom/scom-shopping-cart/interface.ts";
     import { Model } from "@scom/scom-shopping-cart/model.ts";
     interface ScomShoppingCartProductListElement extends ControlElement {
         onQuantityUpdated: (id: string, quantity: number) => void;
@@ -364,8 +352,8 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
         static create(options?: ScomShoppingCartProductListElement, parent?: Container): Promise<ShoppingCartProductList>;
         get model(): Model;
         set model(value: Model);
-        get products(): IProduct[];
-        set products(value: IProduct[]);
+        get products(): IShoppingCartProduct[];
+        set products(value: IShoppingCartProduct[]);
         get currencyText(): string;
         get title(): string;
         get totalPrice(): number;
@@ -395,14 +383,16 @@ declare module "@scom/scom-shopping-cart/components/index.ts" {
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
     import { IPaymentActivity, IPlaceOrder } from '@scom/scom-payment-widget';
     interface ScomShoppingCartElement extends ControlElement {
         translations?: any;
         title?: string;
-        products?: IProduct[];
+        products?: IShoppingCartProduct[];
         currency?: string;
         canRemove?: boolean;
+        returnUrl?: string;
+        baseStripeApi?: string;
         onQuantityUpdated?: (id: string, quantity: number) => void;
         onProductRemoved?: (id: string) => void;
         onPaymentSuccess?: (data: IPaymentActivity) => void;
@@ -427,8 +417,10 @@ declare module "@scom/scom-shopping-cart" {
         placeMarketplaceOrder: (data: IPlaceOrder) => Promise<void>;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomShoppingCartElement, parent?: Container): Promise<ScomShoppingCart>;
-        get products(): IProduct[];
-        set products(value: IProduct[]);
+        get products(): IShoppingCartProduct[];
+        set products(value: IShoppingCartProduct[]);
+        get returnUrl(): string;
+        get baseStripeApi(): string;
         get currency(): string;
         get title(): string;
         get totalPrice(): number;
@@ -532,8 +524,8 @@ declare module "@scom/scom-shopping-cart" {
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
         setTag(value: any): Promise<void>;
-        addProduct(product: IProduct): void;
-        addProducts(products: IProduct[]): void;
+        addProduct(product: IShoppingCartProduct): void;
+        addProducts(products: IShoppingCartProduct[]): void;
         removeProduct(id: string): void;
         updateQuantity(id: string, quantity: number): void;
         clear(): void;
