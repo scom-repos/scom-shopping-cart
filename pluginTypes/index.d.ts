@@ -8,9 +8,17 @@ declare module "@scom/scom-shopping-cart/interface.ts" {
         returnUrl?: string;
         baseStripeApi?: string;
         canRemove?: boolean;
+        cryptoPayoutOptions?: ICryptoPayoutOption[];
     }
     export interface IShoppingCartProduct extends IProduct {
         available?: number;
+    }
+    export interface ICryptoPayoutOption {
+        chainId?: string;
+        cryptoCode: string;
+        networkCode: string;
+        tokenAddress?: string;
+        walletAddress: string;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/formSchema.ts" />
@@ -99,7 +107,8 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
 /// <amd-module name="@scom/scom-shopping-cart/model.ts" />
 declare module "@scom/scom-shopping-cart/model.ts" {
     import { Module } from '@ijstech/components';
-    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from "@scom/scom-shopping-cart/interface.ts";
+    import { ITokenObject } from '@scom/scom-token-list';
     export class Model {
         private module;
         private data;
@@ -112,6 +121,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         get currencyText(): string;
         get title(): string;
         set title(value: string);
+        get cryptoPayoutOptions(): ICryptoPayoutOption[];
         get totalPrice(): number;
         get totalQuantity(): number;
         get returnUrl(): string;
@@ -225,6 +235,10 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         updateQuantity(id: string | number, quantity: number): void;
         clear(): void;
         mergeI18nData(i18nData: Record<string, any>[]): Record<string, any>;
+        getNetworks(): {
+            chainId: number;
+        }[];
+        getTokens(): ITokenObject[];
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/components/index.css.ts" />

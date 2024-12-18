@@ -9,6 +9,7 @@
         "@scom/scom-multicall",
         "@scom/scom-dapp-container",
         "@scom/scom-wallet-modal",
-        "@scom/scom-payment-widget"
+        "@scom/scom-payment-widget",
+        "@ijstech/eth-wallet"
     ]
 }

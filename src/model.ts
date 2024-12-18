@@ -1,6 +1,8 @@
 import { Module } from '@ijstech/components';
-import { IShoppingCartProduct, IShoppingCart } from './interface';
+import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from './interface';
 import formSchema from './formSchema';
+import { ITokenObject, tokenStore } from '@scom/scom-token-list';
+import { Utils } from '@ijstech/eth-wallet';
 
 export class Model {
   private module: Module;
@@ -39,6 +41,11 @@ export class Model {
 
   set title(value: string) {
     this.data.title = value;
+  }
+
+  
+  get cryptoPayoutOptions() {
+    return this.data.cryptoPayoutOptions || [];
   }
 
   get totalPrice() {
@@ -172,5 +179,30 @@ export class Model {
       }
     }
     return mergedI18nData;
+  }
+  
+  getNetworks() {
+    const cryptoPayoutOptions = this.cryptoPayoutOptions;
+    const chainIds = cryptoPayoutOptions.reduce((result: string[], item: ICryptoPayoutOption) => {
+        if (item.chainId && !result.includes(item.chainId)) result.push(item.chainId);
+        return result;
+    }, []);
+    return chainIds.map(chainId => ({ chainId: Number(chainId) }));
+  }
+
+  getTokens() {
+    const tokenAddressMap: Record<string, string[]> = {};
+    const tokens: ITokenObject[] = [];
+    for (let option of this.cryptoPayoutOptions) {
+      if (!option.chainId) continue;
+      const tokenAddress = !option.tokenAddress || option.tokenAddress === Utils.nullAddress ? undefined : option.tokenAddress;
+      if (!tokenAddressMap[option.chainId]) tokenAddressMap[option.chainId] = [];
+      tokenAddressMap[option.chainId].push(tokenAddress);
+    }
+    for (let chainId in tokenAddressMap) {
+      const tokenAddresses = tokenAddressMap[chainId];
+      tokens.push(...tokenStore.getTokenList(Number(chainId)).filter(v => tokenAddresses.includes(v.address)));
+    }
+    return tokens;
   }
 }

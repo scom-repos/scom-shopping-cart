@@ -184,10 +184,13 @@ export default class ScomShoppingCart extends Module {
             this.appendChild(this.scomPaymentWidget);
             await this.scomPaymentWidget.ready();
         }
+        this.scomPaymentWidget.networks = this.model.getNetworks();
+        this.scomPaymentWidget.tokens = this.model.getTokens();
         this.scomPaymentWidget.onStartPayment({
             title: this.title,
             products: this.products,
             currency: this.currency,
+            cryptoPayoutOptions: this.model.cryptoPayoutOptions
             // TODO - Payment info
         });
     }
