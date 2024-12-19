@@ -92,7 +92,7 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
         }
     };
 });
-define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-shopping-cart/formSchema.ts"], function (require, exports, formSchema_1) {
+define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-shopping-cart/formSchema.ts", "@scom/scom-token-list", "@ijstech/eth-wallet"], function (require, exports, formSchema_1, scom_token_list_1, eth_wallet_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Model = void 0;
@@ -124,6 +124,9 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         }
         set title(value) {
             this.data.title = value;
+        }
+        get cryptoPayoutOptions() {
+            return this.data.cryptoPayoutOptions || [];
         }
         get totalPrice() {
             return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
@@ -240,6 +243,32 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
                 }
             }
             return mergedI18nData;
+        }
+        getNetworks() {
+            const cryptoPayoutOptions = this.cryptoPayoutOptions;
+            const chainIds = cryptoPayoutOptions.reduce((result, item) => {
+                if (item.chainId && !result.includes(item.chainId))
+                    result.push(item.chainId);
+                return result;
+            }, []);
+            return chainIds.map(chainId => ({ chainId: Number(chainId) }));
+        }
+        getTokens() {
+            const tokenAddressMap = {};
+            const tokens = [];
+            for (let option of this.cryptoPayoutOptions) {
+                if (!option.chainId)
+                    continue;
+                const tokenAddress = !option.tokenAddress || option.tokenAddress === eth_wallet_1.Utils.nullAddress ? undefined : option.tokenAddress;
+                if (!tokenAddressMap[option.chainId])
+                    tokenAddressMap[option.chainId] = [];
+                tokenAddressMap[option.chainId].push(tokenAddress);
+            }
+            for (let chainId in tokenAddressMap) {
+                const tokenAddresses = tokenAddressMap[chainId];
+                tokens.push(...scom_token_list_1.tokenStore.getTokenList(Number(chainId)).filter(v => tokenAddresses.includes(v.address)));
+            }
+            return tokens;
         }
     }
     exports.Model = Model;
@@ -737,10 +766,13 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 this.appendChild(this.scomPaymentWidget);
                 await this.scomPaymentWidget.ready();
             }
+            this.scomPaymentWidget.networks = this.model.getNetworks();
+            this.scomPaymentWidget.tokens = this.model.getTokens();
             this.scomPaymentWidget.onStartPayment({
                 title: this.title,
                 products: this.products,
                 currency: this.currency,
+                cryptoPayoutOptions: this.model.cryptoPayoutOptions
                 // TODO - Payment info
             });
         }
