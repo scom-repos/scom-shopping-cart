@@ -9,6 +9,7 @@ declare module "@scom/scom-shopping-cart/interface.ts" {
         baseStripeApi?: string;
         canRemove?: boolean;
         cryptoPayoutOptions?: ICryptoPayoutOption[];
+        stripeAccountId?: string;
     }
     export interface IShoppingCartProduct extends IProduct {
         available?: number;
@@ -122,6 +123,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         get title(): string;
         set title(value: string);
         get cryptoPayoutOptions(): ICryptoPayoutOption[];
+        get stripeAccountId(): string;
         get totalPrice(): number;
         get totalQuantity(): number;
         get returnUrl(): string;
@@ -397,12 +399,14 @@ declare module "@scom/scom-shopping-cart/components/index.ts" {
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from "@scom/scom-shopping-cart/interface.ts";
     import { IPaymentActivity, IPlaceOrder } from '@scom/scom-payment-widget';
     interface ScomShoppingCartElement extends ControlElement {
         translations?: any;
         title?: string;
         products?: IShoppingCartProduct[];
+        cryptoPayoutOptions?: ICryptoPayoutOption;
+        stripeAccountId?: string;
         currency?: string;
         canRemove?: boolean;
         returnUrl?: string;
@@ -436,6 +440,8 @@ declare module "@scom/scom-shopping-cart" {
         get returnUrl(): string;
         get baseStripeApi(): string;
         get currency(): string;
+        get cryptoPayoutOptions(): ICryptoPayoutOption[];
+        get stripeAccountId(): string;
         get title(): string;
         get totalPrice(): number;
         get canRemove(): boolean;

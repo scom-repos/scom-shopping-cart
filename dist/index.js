@@ -128,6 +128,9 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         get cryptoPayoutOptions() {
             return this.data.cryptoPayoutOptions || [];
         }
+        get stripeAccountId() {
+            return this.data.stripeAccountId;
+        }
         get totalPrice() {
             return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
         }
@@ -675,6 +678,12 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         get currency() {
             return this.model.currency;
         }
+        get cryptoPayoutOptions() {
+            return this.model.cryptoPayoutOptions;
+        }
+        get stripeAccountId() {
+            return this.model.stripeAccountId;
+        }
         get title() {
             return this.model.title;
         }
@@ -772,8 +781,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 title: this.title,
                 products: this.products,
                 currency: this.currency,
-                cryptoPayoutOptions: this.model.cryptoPayoutOptions
-                // TODO - Payment info
+                cryptoPayoutOptions: this.model.cryptoPayoutOptions,
+                stripeAccountId: this.model.stripeAccountId
             });
         }
         initModel() {
@@ -795,14 +804,25 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.productListElm.model = this.model;
             const lazyLoad = this.getAttribute('lazyLoad', true, false);
             if (!lazyLoad) {
-                const title = this.getAttribute('title', true);
-                const currency = this.getAttribute('currency', true);
-                const products = this.getAttribute('products', true);
-                const returnUrl = this.getAttribute('returnUrl', true);
-                const baseStripeApi = this.getAttribute('baseStripeApi', true);
-                const canRemove = this.getAttribute('canRemove', true, false);
+                const title = this.getAttribute('title', true, this.title);
+                const currency = this.getAttribute('currency', true, this.currency);
+                const products = this.getAttribute('products', true, this.products);
+                const cryptoPayoutOptions = this.getAttribute('cryptoPayoutOptions', true, this.cryptoPayoutOptions);
+                const stripeAccountId = this.getAttribute('stripeAccountId', true, this.stripeAccountId);
+                const returnUrl = this.getAttribute('returnUrl', true, this.returnUrl);
+                const baseStripeApi = this.getAttribute('baseStripeApi', true, this.baseStripeApi);
+                const canRemove = this.getAttribute('canRemove', true, this.canRemove || false);
                 if (products) {
-                    this.setData({ title, products, currency, returnUrl, baseStripeApi, canRemove });
+                    this.setData({
+                        title,
+                        products,
+                        cryptoPayoutOptions,
+                        stripeAccountId,
+                        currency,
+                        returnUrl,
+                        baseStripeApi,
+                        canRemove,
+                    });
                 }
             }
         }
