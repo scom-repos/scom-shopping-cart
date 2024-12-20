@@ -8,7 +8,7 @@ export interface IShoppingCart {
     baseStripeApi?: string;
     canRemove?: boolean;
     cryptoPayoutOptions?: ICryptoPayoutOption[];
-    // payment info - TODO
+    stripeAccountId?: string;
 }
 export interface IShoppingCartProduct extends IProduct {
     available?: number;

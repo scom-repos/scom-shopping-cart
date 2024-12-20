@@ -5,7 +5,7 @@ import {
     ControlElement,
     customElements,
 } from '@ijstech/components';
-import { IShoppingCartProduct, IShoppingCart } from './interface';
+import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from './interface';
 import { Model } from './model';
 import { IPaymentActivity, IPlaceOrder, ScomPaymentWidget } from '@scom/scom-payment-widget';
 import { ShoppingCartProductList } from './components/index';
@@ -15,6 +15,8 @@ interface ScomShoppingCartElement extends ControlElement {
     translations?: any;
     title?: string;
     products?: IShoppingCartProduct[];
+    cryptoPayoutOptions?: ICryptoPayoutOption;
+    stripeAccountId?: string;
     currency?: string;
     canRemove?: boolean;
     returnUrl?: string;
@@ -22,7 +24,7 @@ interface ScomShoppingCartElement extends ControlElement {
     onQuantityUpdated?: (id: string, quantity: number) => void;
     onProductRemoved?: (id: string) => void;
     onPaymentSuccess?: (data: IPaymentActivity) => void;
-	placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
+    placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
 }
 
 declare global {
@@ -76,6 +78,14 @@ export default class ScomShoppingCart extends Module {
 
     get currency() {
         return this.model.currency;
+    }
+
+    get cryptoPayoutOptions() {
+        return this.model.cryptoPayoutOptions;
+    }
+
+    get stripeAccountId() {
+        return this.model.stripeAccountId;
     }
 
     get title() {
@@ -190,8 +200,8 @@ export default class ScomShoppingCart extends Module {
             title: this.title,
             products: this.products,
             currency: this.currency,
-            cryptoPayoutOptions: this.model.cryptoPayoutOptions
-            // TODO - Payment info
+            cryptoPayoutOptions: this.model.cryptoPayoutOptions,
+            stripeAccountId: this.model.stripeAccountId
         });
     }
 
@@ -215,14 +225,25 @@ export default class ScomShoppingCart extends Module {
         this.productListElm.model = this.model;
         const lazyLoad = this.getAttribute('lazyLoad', true, false);
         if (!lazyLoad) {
-            const title = this.getAttribute('title', true);
-            const currency = this.getAttribute('currency', true);
-            const products = this.getAttribute('products', true);
-            const returnUrl = this.getAttribute('returnUrl', true);
-            const baseStripeApi = this.getAttribute('baseStripeApi', true);
-            const canRemove = this.getAttribute('canRemove', true, false);
+            const title = this.getAttribute('title', true, this.title);
+            const currency = this.getAttribute('currency', true, this.currency);
+            const products = this.getAttribute('products', true, this.products);
+            const cryptoPayoutOptions = this.getAttribute('cryptoPayoutOptions', true, this.cryptoPayoutOptions);
+            const stripeAccountId = this.getAttribute('stripeAccountId', true, this.stripeAccountId);
+            const returnUrl = this.getAttribute('returnUrl', true, this.returnUrl);
+            const baseStripeApi = this.getAttribute('baseStripeApi', true, this.baseStripeApi);
+            const canRemove = this.getAttribute('canRemove', true, this.canRemove || false);
             if (products) {
-                this.setData({ title, products, currency, returnUrl, baseStripeApi, canRemove });
+                this.setData({
+                    title,
+                    products,
+                    cryptoPayoutOptions,
+                    stripeAccountId,
+                    currency,
+                    returnUrl,
+                    baseStripeApi,
+                    canRemove,
+                });
             }
         }
     }

@@ -170,6 +170,7 @@ export default class Module1 extends Module {
                                 available: 10
                             }
                         ]}
+                        stripeAccountId='acct_1QXIQv01aOhOuz1h'
                         baseStripeApi="http://127.0.0.1:8100/stripe"
                         returnUrl="http://127.0.0.1:8100/#!/invoice-detail"
                         onPaymentSuccess={this.handlePaymentSuccess}

@@ -42,10 +42,13 @@ export class Model {
   set title(value: string) {
     this.data.title = value;
   }
-
   
   get cryptoPayoutOptions() {
     return this.data.cryptoPayoutOptions || [];
+  }
+
+  get stripeAccountId() {
+    return this.data.stripeAccountId;
   }
 
   get totalPrice() {
