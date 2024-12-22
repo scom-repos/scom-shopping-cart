@@ -1,14 +1,14 @@
 {
     "name": "@scom/scom-shopping-cart",
     "type": "widget",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "dependencies": [
         "@ijstech/components",
         "@scom/scom-network-list",
         "@scom/scom-token-list",
-        "@scom/scom-wallet-modal",
         "@scom/scom-multicall",
         "@scom/scom-dapp-container",
+        "@scom/scom-wallet-modal",
         "@scom/scom-payment-widget",
         "@ijstech/eth-wallet"
     ]
