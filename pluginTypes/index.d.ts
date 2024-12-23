@@ -260,7 +260,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             checkout: string;
             no_product: string;
             confirm_deletion: string;
-            are_you_sure_you_want_to_delete: string;
+            are_you_sure_you_want_to_delete_this_product: string;
         };
         "zh-hant": {
             total: string;
@@ -268,7 +268,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             checkout: string;
             no_product: string;
             confirm_deletion: string;
-            are_you_sure_you_want_to_delete: string;
+            are_you_sure_you_want_to_delete_this_product: string;
         };
         vi: {
             total: string;
@@ -276,7 +276,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             checkout: string;
             no_product: string;
             confirm_deletion: string;
-            are_you_sure_you_want_to_delete: string;
+            are_you_sure_you_want_to_delete_this_product: string;
         };
     };
     export default _default_1;

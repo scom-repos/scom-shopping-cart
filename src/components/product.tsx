@@ -90,7 +90,7 @@ export default class ShoppingCartProduct extends Module {
 
   private handleDelete() {
     this.mdAlert.title = this.i18n.get('$confirm_deletion');
-    this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete', { name: `<b>${this.product.name}</b>` });
+    this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete_this_product');
     this.mdAlert.showModal();
   }
 

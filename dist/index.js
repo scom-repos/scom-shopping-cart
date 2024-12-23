@@ -333,7 +333,7 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "Checkout",
             "no_product": "No products!",
             "confirm_deletion": "Confirm Deletion",
-            "are_you_sure_you_want_to_delete": "Are you sure you want to detele {{name}}?"
+            "are_you_sure_you_want_to_delete_this_product": "Are you sure you want to detele this product?"
         },
         "zh-hant": {
             "total": "總計",
@@ -341,7 +341,7 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "結帳",
             "no_product": "沒有產品！",
             "confirm_deletion": "確認刪除",
-            "are_you_sure_you_want_to_delete": "您確定要刪除 {{name}} 嗎?"
+            "are_you_sure_you_want_to_delete_this_product": "您確定要刪除這個產品嗎？"
         },
         "vi": {
             "total": "Tổng cộng",
@@ -349,7 +349,7 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "Thanh toán",
             "no_product": "Không có sản phẩm!",
             "confirm_deletion": "Xác nhận xóa",
-            "are_you_sure_you_want_to_delete": "Bạn có chắc chắn muốn xóa {{name}} không?"
+            "are_you_sure_you_want_to_delete_this_product": "Bạn có chắc chắn muốn xóa sản phẩm này không?"
         }
     };
 });
@@ -393,7 +393,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
         }
         handleDelete() {
             this.mdAlert.title = this.i18n.get('$confirm_deletion');
-            this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete', { name: `<b>${this.product.name}</b>` });
+            this.mdAlert.content = this.i18n.get('$are_you_sure_you_want_to_delete_this_product');
             this.mdAlert.showModal();
         }
         onConfirmDelete() {
