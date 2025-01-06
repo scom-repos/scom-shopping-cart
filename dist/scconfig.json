@@ -4,11 +4,10 @@
     "version": "0.1.9",
     "dependencies": [
         "@ijstech/components",
-        "@scom/scom-network-list",
         "@scom/scom-token-list",
-        "@scom/scom-multicall",
-        "@scom/scom-dapp-container",
+        "@scom/scom-network-list",
         "@scom/scom-wallet-modal",
+        "@scom/scom-network-modal",
         "@scom/scom-payment-widget",
         "@ijstech/eth-wallet"
     ]

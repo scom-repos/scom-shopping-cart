@@ -134,7 +134,7 @@ export default class ShoppingCartProductList extends Module {
   }
 
   private updateTotalValues() {
-    this.lbTotalPrice.caption = `${this.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
+    this.lbTotalPrice.caption = `${this.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
     this.lbTotalQuantity.caption = `${FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
   }
 
