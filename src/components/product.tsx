@@ -81,7 +81,7 @@ export default class ShoppingCartProduct extends Module {
     if (description && innerWidth <= 480) {
       this.lbDescription.tooltip.content = description;
     }
-    this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 2 })}`;
+    this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
     this.edtQuantity.value = quantity;
     this.iconMinus.enabled = quantity > 1;
     this.iconPlus.enabled = available == null || available > quantity;

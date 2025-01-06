@@ -385,7 +385,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             if (description && innerWidth <= 480) {
                 this.lbDescription.tooltip.content = description;
             }
-            this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 2 })}`;
+            this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.edtQuantity.value = quantity;
             this.iconMinus.enabled = quantity > 1;
             this.iconPlus.enabled = available == null || available > quantity;
@@ -553,7 +553,7 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             this.updateTotalValues();
         }
         updateTotalValues() {
-            this.lbTotalPrice.caption = `${this.currencyText} ${components_3.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 2 })}`;
+            this.lbTotalPrice.caption = `${this.currencyText} ${components_3.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.lbTotalQuantity.caption = `${components_3.FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
         }
         async onSelectIndex() {
