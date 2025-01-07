@@ -42,7 +42,7 @@ export class Model {
   set title(value: string) {
     this.data.title = value;
   }
-  
+
   get cryptoPayoutOptions() {
     return this.data.cryptoPayoutOptions || [];
   }
@@ -183,12 +183,12 @@ export class Model {
     }
     return mergedI18nData;
   }
-  
+
   getNetworks() {
     const cryptoPayoutOptions = this.cryptoPayoutOptions;
     const chainIds = cryptoPayoutOptions.reduce((result: string[], item: ICryptoPayoutOption) => {
-        if (item.chainId && !result.includes(item.chainId)) result.push(item.chainId);
-        return result;
+      if (item.chainId && !result.includes(item.chainId)) result.push(item.chainId);
+      return result;
     }, []);
     return chainIds.map(chainId => ({ chainId: Number(chainId) }));
   }
@@ -197,14 +197,13 @@ export class Model {
     const tokenAddressMap: Record<string, string[]> = {};
     const tokens: ITokenObject[] = [];
     for (let option of this.cryptoPayoutOptions) {
-      if (!option.chainId) continue;
       const tokenAddress = !option.tokenAddress || option.tokenAddress === Utils.nullAddress ? undefined : option.tokenAddress;
-      if (!tokenAddressMap[option.chainId]) tokenAddressMap[option.chainId] = [];
-      tokenAddressMap[option.chainId].push(tokenAddress);
+      if (!tokenAddressMap[option.networkCode]) tokenAddressMap[option.networkCode] = [];
+      tokenAddressMap[option.networkCode].push(tokenAddress);
     }
-    for (let chainId in tokenAddressMap) {
-      const tokenAddresses = tokenAddressMap[chainId];
-      tokens.push(...tokenStore.getTokenList(Number(chainId)).filter(v => tokenAddresses.includes(v.address)));
+    for (let networkCode in tokenAddressMap) {
+      const tokenAddresses = tokenAddressMap[networkCode];
+      tokens.push(...tokenStore.getTokenListByNetworkCode(networkCode).filter(v => tokenAddresses.includes(v.address)));
     }
     return tokens;
   }
