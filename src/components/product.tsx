@@ -195,7 +195,7 @@ export default class ShoppingCartProduct extends Module {
           </i-vstack>
           <i-vstack gap="0.5rem" width="100%" minWidth="3.5rem">
             <i-stack direction="horizontal" justifyContent="space-between" gap="0.5rem">
-              <i-label id="lbName" font={{ bold: true, size: '1rem' }} />
+              <i-label id="lbName" minWidth={0} overflowWrap="break-word" font={{ bold: true, size: '1rem' }} />
               <i-icon
                 id="iconRemove"
                 visible={false}
