@@ -440,6 +440,9 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.iconMinus.enabled = quantity > 1;
             this.iconPlus.enabled = available == null || available > quantity;
         }
+        handleProductClick() {
+            window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+        }
         initTranslations(translations) {
             this.i18n.init({ ...translations });
         }
@@ -454,7 +457,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.setProduct(product, currency, canRemove);
         }
         render() {
-            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80 },
+            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80, cursor: "pointer", onClick: this.handleProductClick },
                 this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, wrap: "wrap" },
                     this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }, alignSelf: "start" },
                         this.$render("i-image", { id: "imgProduct", width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
@@ -552,7 +555,6 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
         }
         updateTotalValues() {
             this.lbTotalPrice.caption = `${this.currencyText} ${components_3.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
-            this.lbTotalQuantity.caption = `${components_3.FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
         }
         async onSelectIndex() {
             if (!this.model)
@@ -578,7 +580,6 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
                 this.resetPagination();
             }
             if (!this.products || !this.products.length) {
-                this.pnlTotalQuantity.visible = false;
                 this.pnlTotalPrice.visible = false;
                 this.pnlBtnCheckout.visible = false;
                 this.paginationElm.visible = false;
@@ -593,7 +594,6 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             const nodeItems = [];
             this.pnlTotalPrice.visible = true;
             this.pnlBtnCheckout.visible = true;
-            this.pnlTotalQuantity.visible = true;
             for (let i = 0; i < this.paginatedProducts.length; i++) {
                 const product = this.paginatedProducts[i];
                 const shoppingCartProduct = new product_1.default();
@@ -622,9 +622,6 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
                 this.$render("i-vstack", { id: "pnlProducts", gap: "1rem", width: "100%", verticalAlignment: "center" }),
                 this.$render("i-hstack", { margin: { top: '1rem', bottom: '1rem' }, justifyContent: "end" },
                     this.$render("i-pagination", { id: "paginationElm", width: "auto", currentPage: this.pageNumber, totalPages: this.totalPage, onPageChanged: this.onSelectIndex.bind(this) })),
-                this.$render("i-hstack", { id: "pnlTotalQuantity", gap: "1rem", width: "100%", margin: { top: '1rem' }, verticalAlignment: "center", horizontalAlignment: "space-between", wrap: "wrap" },
-                    this.$render("i-label", { caption: "$total_quantity", font: { size: '1rem', bold: true } }),
-                    this.$render("i-label", { id: "lbTotalQuantity", font: { size: '1rem', bold: true } })),
                 this.$render("i-hstack", { id: "pnlTotalPrice", gap: "1rem", width: "100%", margin: { top: '1rem' }, verticalAlignment: "center", horizontalAlignment: "space-between", wrap: "wrap" },
                     this.$render("i-label", { caption: "$total", font: { size: '1rem', bold: true } }),
                     this.$render("i-label", { id: "lbTotalPrice", font: { size: '1rem', bold: true } })),

@@ -39,10 +39,8 @@ export default class ShoppingCartProductList extends Module {
   private _model: Model;
   private listProductElm: { [key: string]: ShoppingCartProduct } = {};
   private pnlProducts: VStack;
-  private pnlTotalQuantity: HStack;
   private pnlTotalPrice: HStack;
   private lbTotalPrice: Label;
-  private lbTotalQuantity: Label;
   private pnlBtnCheckout: VStack;
 
   @observable()
@@ -135,7 +133,6 @@ export default class ShoppingCartProductList extends Module {
 
   private updateTotalValues() {
     this.lbTotalPrice.caption = `${this.currencyText} ${FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
-    this.lbTotalQuantity.caption = `${FormatUtils.formatNumber(this.totalQuantity, { hasTrailingZero: false })}`;
   }
 
   private async onSelectIndex() {
@@ -163,7 +160,6 @@ export default class ShoppingCartProductList extends Module {
       this.resetPagination();
     }
     if (!this.products || !this.products.length) {
-      this.pnlTotalQuantity.visible = false;
       this.pnlTotalPrice.visible = false;
       this.pnlBtnCheckout.visible = false;
       this.paginationElm.visible = false;
@@ -185,7 +181,6 @@ export default class ShoppingCartProductList extends Module {
     const nodeItems: HTMLElement[] = [];
     this.pnlTotalPrice.visible = true;
     this.pnlBtnCheckout.visible = true;
-    this.pnlTotalQuantity.visible = true;
     for (let i = 0; i < this.paginatedProducts.length; i++) {
       const product = this.paginatedProducts[i];
       const shoppingCartProduct = new ShoppingCartProduct();
@@ -224,10 +219,6 @@ export default class ShoppingCartProductList extends Module {
             totalPages={this.totalPage}
             onPageChanged={this.onSelectIndex.bind(this)}
           />
-        </i-hstack>
-        <i-hstack id="pnlTotalQuantity" gap="1rem" width="100%" margin={{ top: '1rem' }} verticalAlignment="center" horizontalAlignment="space-between" wrap="wrap">
-          <i-label caption="$total_quantity" font={{ size: '1rem', bold: true }} />
-          <i-label id="lbTotalQuantity" font={{ size: '1rem', bold: true }} />
         </i-hstack>
         <i-hstack id="pnlTotalPrice" gap="1rem" width="100%" margin={{ top: '1rem' }} verticalAlignment="center" horizontalAlignment="space-between" wrap="wrap">
           <i-label caption="$total" font={{ size: '1rem', bold: true }} />

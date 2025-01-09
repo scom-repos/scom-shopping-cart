@@ -143,6 +143,10 @@ export default class ShoppingCartProduct extends Module {
     this.iconPlus.enabled = available == null || available > quantity;
   }
 
+  private handleProductClick() {
+    window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+  }
+
   initTranslations(translations: any) {
     this.i18n.init({ ...translations });
   }
@@ -160,7 +164,7 @@ export default class ShoppingCartProduct extends Module {
 
   render() {
     return (
-      <i-panel width="100%" height="100%" minHeight={80}
+      <i-panel width="100%" height="100%" minHeight={80} cursor="pointer" onClick={this.handleProductClick}
       >
         <i-hstack
           gap="0.5rem"
