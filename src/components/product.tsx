@@ -204,6 +204,7 @@ export default class ShoppingCartProduct extends Module {
                 width={20}
                 height={20}
                 padding={{ top: 2, bottom: 2, left: 2, right: 2 }}
+                stack={{ shrink: '0' }}
                 cursor="pointer"
                 onClick={this.handleDelete.bind(this)}
               />
