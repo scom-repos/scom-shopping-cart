@@ -143,6 +143,10 @@ export default class ShoppingCartProduct extends Module {
     this.iconPlus.enabled = available == null || available > quantity;
   }
 
+  private handleProductClick() {
+    window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+  }
+
   initTranslations(translations: any) {
     this.i18n.init({ ...translations });
   }
@@ -160,7 +164,7 @@ export default class ShoppingCartProduct extends Module {
 
   render() {
     return (
-      <i-panel width="100%" height="100%" minHeight={80}
+      <i-panel width="100%" height="100%" minHeight={80} cursor="pointer" onClick={this.handleProductClick}
       >
         <i-hstack
           gap="0.5rem"
@@ -168,7 +172,6 @@ export default class ShoppingCartProduct extends Module {
           height="100%"
           padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }}
           border={{ radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }}
-          wrap="wrap"
         >
           <i-vstack
             width={100}
@@ -178,6 +181,7 @@ export default class ShoppingCartProduct extends Module {
             border={{ radius: 4 }}
             padding={{ top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }}
             alignSelf="start"
+            stack={{ shrink: '0' }}
           >
             <i-image
               id="imgProduct"
@@ -189,45 +193,60 @@ export default class ShoppingCartProduct extends Module {
               fallbackUrl="https://placehold.co/600x400?text=No+Image"
             />
           </i-vstack>
-          <i-vstack gap="0.5rem" width="calc(100% - 13.25rem)" minWidth="3.5rem">
-            <i-label id="lbName" font={{ bold: true, size: '0.875rem' }} />
+          <i-vstack gap="0.5rem" width="100%" minWidth="3.5rem">
+            <i-stack direction="horizontal" justifyContent="space-between" gap="0.5rem">
+              <i-label id="lbName" minWidth={0} overflowWrap="break-word" font={{ bold: true, size: '1rem' }} />
+              <i-icon
+                id="iconRemove"
+                visible={false}
+                name="trash"
+                fill={Theme.colors.error.dark}
+                width={20}
+                height={20}
+                padding={{ top: 2, bottom: 2, left: 2, right: 2 }}
+                stack={{ shrink: '0' }}
+                cursor="pointer"
+                onClick={this.handleDelete.bind(this)}
+              />
+            </i-stack>
             <i-label id="lbDescription" font={{ color: Theme.text.hint, size: '0.8125rem' }} class={textEllipsis} />
-          </i-vstack>
-          <i-vstack gap="0.5rem" minWidth={80} margin={{ left: 'auto' }}>
-            <i-icon id="iconRemove" visible={false} name="trash" fill={Theme.colors.error.dark} width={16} height={16} cursor="pointer" margin={{ left: 'auto' }} onClick={this.handleDelete.bind(this)} />
-            <i-label id="lbPrice" font={{ bold: true, size: '0.875rem' }} margin={{ left: 'auto' }} class={textRight} />
-            <i-hstack verticalAlignment="center" horizontalAlignment="end">
-              <i-icon
-                id="iconMinus"
-                enabled={false}
-                name="minus-circle"
-                width={20}
-                height={20}
-                fill={Theme.text.primary}
-                cursor="pointer"
-                onClick={this.decreaseQuantity}
-              />
-              <i-input
-                id="edtQuantity"
-                class={inputStyle}
-                width={40}
-                height="auto"
-                inputType="number"
-                border={{ style: 'none' }}
-                background={{ color: 'transparent' }}
-                onChanged={this.handleQuantityChanged}
-              />
-              <i-icon
-                id="iconPlus"
-                enabled={false}
-                name="plus-circle"
-                width={20}
-                height={20}
-                fill={Theme.text.primary}
-                cursor="pointer"
-                onClick={this.increaseQuantity}
-              />
-            </i-hstack>
+            <i-stack direction="horizontal" alignItems="center" justifyContent="space-between" margin={{ top: 'auto' }}>
+              <i-label id="lbPrice" font={{ size: '1rem' }} />
+              <i-hstack verticalAlignment="center" horizontalAlignment="end">
+                <i-icon
+                  id="iconMinus"
+                  enabled={false}
+                  name="minus-circle"
+                  width={24}
+                  height={24}
+                  padding={{ top: 2, bottom: 2, left: 2, right: 2 }}
+                  fill={Theme.text.primary}
+                  cursor="pointer"
+                  onClick={this.decreaseQuantity}
+                />
+                <i-input
+                  id="edtQuantity"
+                  class={inputStyle}
+                  width={40}
+                  height="auto"
+                  inputType="number"
+                  border={{ style: 'none' }}
+                  background={{ color: 'transparent' }}
+                  onChanged={this.handleQuantityChanged}
+                />
+                <i-icon
+                  id="iconPlus"
+                  enabled={false}
+                  name="plus-circle"
+                  width={24}
+                  height={24}
+                  padding={{ top: 2, bottom: 2, left: 2, right: 2 }}
+                  fill={Theme.text.primary}
+                  cursor="pointer"
+                  onClick={this.increaseQuantity}
+                />
+              </i-hstack>
+            </i-stack>
           </i-vstack>
         </i-hstack>
         <i-alert id="mdAlert" status="confirm" class={alertStyle} onConfirm={this.onConfirmDelete} />

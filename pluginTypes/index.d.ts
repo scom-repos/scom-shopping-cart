@@ -325,6 +325,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private decreaseQuantity;
         private handleQuantityChanged;
         updateQuantityFromParent(quantity: number): void;
+        private handleProductClick;
         initTranslations(translations: any): void;
         init(): Promise<void>;
         render(): any;
@@ -351,10 +352,8 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
         private _model;
         private listProductElm;
         private pnlProducts;
-        private pnlTotalQuantity;
         private pnlTotalPrice;
         private lbTotalPrice;
-        private lbTotalQuantity;
         private pnlBtnCheckout;
         private totalPage;
         private pageNumber;
