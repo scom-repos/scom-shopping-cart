@@ -144,7 +144,7 @@ export default class ShoppingCartProduct extends Module {
   }
 
   private handleProductClick() {
-    window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+    window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
   }
 
   initTranslations(translations: any) {

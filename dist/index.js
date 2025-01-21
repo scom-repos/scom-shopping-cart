@@ -441,7 +441,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.iconPlus.enabled = available == null || available > quantity;
         }
         handleProductClick() {
-            window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+            window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
         }
         initTranslations(translations) {
             this.i18n.init({ ...translations });
