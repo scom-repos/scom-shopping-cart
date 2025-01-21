@@ -371,7 +371,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.canRemove = canRemove || false;
             this.renderProduct();
         }
-        renderProduct() {
+        async renderProduct() {
             if (!this.imgProduct || !this.product)
                 return;
             const { images, price, name, description, quantity, available } = this.product;
@@ -379,9 +379,15 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                 this.imgProduct.url = images[0];
             }
             this.lbName.caption = name;
-            this.lbDescription.caption = description || '';
+            if (description) {
+                const plainText = await this.markdownDescription.toPlainText(description);
+                this.markdownDescription.load(plainText || "");
+            }
+            else {
+                this.markdownDescription.load("");
+            }
             if (description && innerWidth <= 480) {
-                this.lbDescription.tooltip.content = description;
+                this.markdownDescription.tooltip.content = description;
             }
             this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.edtQuantity.value = quantity;
@@ -465,7 +471,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                         this.$render("i-stack", { direction: "horizontal", justifyContent: "space-between", gap: "0.5rem" },
                             this.$render("i-label", { id: "lbName", minWidth: 0, overflowWrap: "break-word", font: { bold: true, size: '1rem' } }),
                             this.$render("i-icon", { id: "iconRemove", visible: false, name: "trash", fill: Theme.colors.error.dark, width: 20, height: 20, padding: { top: 2, bottom: 2, left: 2, right: 2 }, stack: { shrink: '0' }, cursor: "pointer", onClick: this.handleDelete.bind(this) })),
-                        this.$render("i-label", { id: "lbDescription", font: { color: Theme.text.hint, size: '0.8125rem' }, class: index_css_1.textEllipsis }),
+                        this.$render("i-markdown", { id: "markdownDescription", width: "100%", class: index_css_1.textEllipsis, font: { color: Theme.text.hint, size: '0.8125rem' } }),
                         this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", margin: { top: 'auto' } },
                             this.$render("i-label", { id: "lbPrice", font: { size: '1rem' } }),
                             this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end" },
