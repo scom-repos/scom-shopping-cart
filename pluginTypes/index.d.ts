@@ -309,7 +309,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private iconPlus;
         private imgProduct;
         private lbName;
-        private lbDescription;
+        private markdownDescription;
         private lbPrice;
         private mdAlert;
         onQuantityUpdated: (id: string, quantity: number) => void;

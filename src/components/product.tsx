@@ -10,7 +10,8 @@ import {
   Input,
   Alert,
   Label,
-  Image
+  Image,
+  Markdown
 } from '@ijstech/components';
 import { alertStyle, inputStyle, textEllipsis, textRight } from './index.css';
 import { IShoppingCartProduct } from '../interface';
@@ -46,7 +47,7 @@ export default class ShoppingCartProduct extends Module {
   private iconPlus: Icon;
   private imgProduct: Image;
   private lbName: Label;
-  private lbDescription: Label;
+  private markdownDescription: Markdown;
   private lbPrice: Label;
   private mdAlert: Alert;
 
@@ -70,16 +71,21 @@ export default class ShoppingCartProduct extends Module {
     this.renderProduct();
   }
 
-  private renderProduct() {
+  private async renderProduct() {
     if (!this.imgProduct || !this.product) return;
     const { images, price, name, description, quantity, available } = this.product;
     if (images && images.length) {
       this.imgProduct.url = images[0];
     }
     this.lbName.caption = name;
-    this.lbDescription.caption = description || '';
+    if (description) {
+      const plainText = await this.markdownDescription.toPlainText(description);
+      this.markdownDescription.load(plainText || "");
+    } else {
+      this.markdownDescription.load("");
+    }
     if (description && innerWidth <= 480) {
-      this.lbDescription.tooltip.content = description;
+      this.markdownDescription.tooltip.content = description;
     }
     this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
     this.edtQuantity.value = quantity;
@@ -144,7 +150,7 @@ export default class ShoppingCartProduct extends Module {
   }
 
   private handleProductClick() {
-    window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+    window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
   }
 
   initTranslations(translations: any) {
@@ -164,7 +170,7 @@ export default class ShoppingCartProduct extends Module {
 
   render() {
     return (
-      <i-panel width="100%" height="100%" minHeight={80} cursor="pointer" onClick={this.handleProductClick}
+      <i-panel width="100%" height="100%" minHeight={80}
       >
         <i-hstack
           gap="0.5rem"
@@ -172,6 +178,8 @@ export default class ShoppingCartProduct extends Module {
           height="100%"
           padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }}
           border={{ radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }}
+          cursor="pointer"
+          onClick={this.handleProductClick}
         >
           <i-vstack
             width={100}
@@ -209,7 +217,12 @@ export default class ShoppingCartProduct extends Module {
                 onClick={this.handleDelete.bind(this)}
               />
             </i-stack>
-            <i-label id="lbDescription" font={{ color: Theme.text.hint, size: '0.8125rem' }} class={textEllipsis} />
+            <i-markdown
+                id="markdownDescription"
+                width="100%"
+                class={textEllipsis}
+                font={{ color: Theme.text.hint, size: '0.8125rem' }}
+            ></i-markdown>
             <i-stack direction="horizontal" alignItems="center" justifyContent="space-between" margin={{ top: 'auto' }}>
               <i-label id="lbPrice" font={{ size: '1rem' }} />
               <i-hstack verticalAlignment="center" horizontalAlignment="end">

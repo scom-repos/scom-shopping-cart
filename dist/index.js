@@ -371,7 +371,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.canRemove = canRemove || false;
             this.renderProduct();
         }
-        renderProduct() {
+        async renderProduct() {
             if (!this.imgProduct || !this.product)
                 return;
             const { images, price, name, description, quantity, available } = this.product;
@@ -379,9 +379,15 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                 this.imgProduct.url = images[0];
             }
             this.lbName.caption = name;
-            this.lbDescription.caption = description || '';
+            if (description) {
+                const plainText = await this.markdownDescription.toPlainText(description);
+                this.markdownDescription.load(plainText || "");
+            }
+            else {
+                this.markdownDescription.load("");
+            }
             if (description && innerWidth <= 480) {
-                this.lbDescription.tooltip.content = description;
+                this.markdownDescription.tooltip.content = description;
             }
             this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.edtQuantity.value = quantity;
@@ -441,7 +447,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.iconPlus.enabled = available == null || available > quantity;
         }
         handleProductClick() {
-            window.location.assign(`#!/product-detail/${this.product.stallId}/${this.product.id}`);
+            window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
         }
         initTranslations(translations) {
             this.i18n.init({ ...translations });
@@ -457,15 +463,15 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.setProduct(product, currency, canRemove);
         }
         render() {
-            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80, cursor: "pointer", onClick: this.handleProductClick },
-                this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' } },
+            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80 },
+                this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, cursor: "pointer", onClick: this.handleProductClick },
                     this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }, alignSelf: "start", stack: { shrink: '0' } },
                         this.$render("i-image", { id: "imgProduct", width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
                     this.$render("i-vstack", { gap: "0.5rem", width: "100%", minWidth: "3.5rem" },
                         this.$render("i-stack", { direction: "horizontal", justifyContent: "space-between", gap: "0.5rem" },
                             this.$render("i-label", { id: "lbName", minWidth: 0, overflowWrap: "break-word", font: { bold: true, size: '1rem' } }),
                             this.$render("i-icon", { id: "iconRemove", visible: false, name: "trash", fill: Theme.colors.error.dark, width: 20, height: 20, padding: { top: 2, bottom: 2, left: 2, right: 2 }, stack: { shrink: '0' }, cursor: "pointer", onClick: this.handleDelete.bind(this) })),
-                        this.$render("i-label", { id: "lbDescription", font: { color: Theme.text.hint, size: '0.8125rem' }, class: index_css_1.textEllipsis }),
+                        this.$render("i-markdown", { id: "markdownDescription", width: "100%", class: index_css_1.textEllipsis, font: { color: Theme.text.hint, size: '0.8125rem' } }),
                         this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", margin: { top: 'auto' } },
                             this.$render("i-label", { id: "lbPrice", font: { size: '1rem' } }),
                             this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end" },
