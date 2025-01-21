@@ -463,8 +463,8 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.setProduct(product, currency, canRemove);
         }
         render() {
-            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80, cursor: "pointer", onClick: this.handleProductClick },
-                this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' } },
+            return (this.$render("i-panel", { width: "100%", height: "100%", minHeight: 80 },
+                this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, cursor: "pointer", onClick: this.handleProductClick },
                     this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }, alignSelf: "start", stack: { shrink: '0' } },
                         this.$render("i-image", { id: "imgProduct", width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
                     this.$render("i-vstack", { gap: "0.5rem", width: "100%", minWidth: "3.5rem" },

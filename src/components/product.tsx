@@ -170,7 +170,7 @@ export default class ShoppingCartProduct extends Module {
 
   render() {
     return (
-      <i-panel width="100%" height="100%" minHeight={80} cursor="pointer" onClick={this.handleProductClick}
+      <i-panel width="100%" height="100%" minHeight={80}
       >
         <i-hstack
           gap="0.5rem"
@@ -178,6 +178,8 @@ export default class ShoppingCartProduct extends Module {
           height="100%"
           padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }}
           border={{ radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }}
+          cursor="pointer"
+          onClick={this.handleProductClick}
         >
           <i-vstack
             width={100}
