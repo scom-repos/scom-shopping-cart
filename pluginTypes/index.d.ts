@@ -113,6 +113,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
     export class Model {
         private module;
         private data;
+        private _env;
         updateWidget: (reset: boolean) => void;
         constructor(module: Module);
         get products(): IShoppingCartProduct[];
@@ -132,6 +133,10 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         set baseStripeApi(value: string);
         get canRemove(): boolean;
         set canRemove(value: boolean);
+        get env(): string;
+        set env(value: string);
+        get isOnTelegram(): boolean;
+        get isAvailableOnTelegram(): boolean;
         getData(): IShoppingCart;
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
@@ -261,6 +266,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             no_product: string;
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
+            not_supported_on_telegram: string;
         };
         "zh-hant": {
             total: string;
@@ -269,6 +275,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             no_product: string;
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
+            not_supported_on_telegram: string;
         };
         vi: {
             total: string;
@@ -277,6 +284,7 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             no_product: string;
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
+            not_supported_on_telegram: string;
         };
     };
     export default _default_1;
@@ -355,6 +363,7 @@ declare module "@scom/scom-shopping-cart/components/productList.tsx" {
         private pnlTotalPrice;
         private lbTotalPrice;
         private pnlBtnCheckout;
+        private btnCheckout;
         private totalPage;
         private pageNumber;
         private itemStart;
@@ -410,6 +419,7 @@ declare module "@scom/scom-shopping-cart" {
         canRemove?: boolean;
         returnUrl?: string;
         baseStripeApi?: string;
+        env?: string;
         onQuantityUpdated?: (id: string, quantity: number) => void;
         onProductRemoved?: (id: string) => void;
         onPaymentSuccess?: (data: IPaymentActivity) => void;

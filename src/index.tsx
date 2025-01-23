@@ -21,6 +21,7 @@ interface ScomShoppingCartElement extends ControlElement {
     canRemove?: boolean;
     returnUrl?: string;
     baseStripeApi?: string;
+    env?: string;
     onQuantityUpdated?: (id: string, quantity: number) => void;
     onProductRemoved?: (id: string) => void;
     onPaymentSuccess?: (data: IPaymentActivity) => void;
@@ -194,6 +195,7 @@ export default class ScomShoppingCart extends Module {
             this.appendChild(this.scomPaymentWidget);
             await this.scomPaymentWidget.ready();
         }
+        this.scomPaymentWidget.isOnTelegram = this.model.isOnTelegram;
         this.scomPaymentWidget.networks = this.model.getNetworks();
         this.scomPaymentWidget.tokens = this.model.getTokens();
         this.scomPaymentWidget.onStartPayment({
@@ -223,6 +225,7 @@ export default class ScomShoppingCart extends Module {
         this.i18n.init({ ...this._translations });
         this.productListElm.initTranslations(this._translations);
         this.productListElm.model = this.model;
+        this.model.env = this.getAttribute('env', true);
         const lazyLoad = this.getAttribute('lazyLoad', true, false);
         if (!lazyLoad) {
             const title = this.getAttribute('title', true, this.title);

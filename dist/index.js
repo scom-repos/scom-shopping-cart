@@ -156,6 +156,18 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
             this.data.canRemove = value;
             this.updateWidget(true);
         }
+        get env() {
+            return this._env;
+        }
+        set env(value) {
+            this._env = value;
+        }
+        get isOnTelegram() {
+            return this.env === "tg";
+        }
+        get isAvailableOnTelegram() {
+            return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
+        }
         getData() {
             return this.data;
         }
@@ -308,9 +320,8 @@ define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports"
         WebkitBoxOrient: 'vertical',
     });
     exports.buttonStyle = components_1.Styles.style({
-        width: '100%',
-        maxWidth: 180,
-        minWidth: 90,
+        width: 'auto',
+        minWidth: 180,
         marginTop: '1rem',
         marginInline: 'auto',
         padding: '0.5rem 0.75rem',
@@ -331,7 +342,8 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "Checkout",
             "no_product": "No products!",
             "confirm_deletion": "Confirm Deletion",
-            "are_you_sure_you_want_to_delete_this_product": "Are you sure you want to detele this product?"
+            "are_you_sure_you_want_to_delete_this_product": "Are you sure you want to detele this product?",
+            "not_supported_on_telegram": "Not supported on Telegram",
         },
         "zh-hant": {
             "total": "總計",
@@ -339,7 +351,8 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "結帳",
             "no_product": "沒有產品！",
             "confirm_deletion": "確認刪除",
-            "are_you_sure_you_want_to_delete_this_product": "您確定要刪除這個產品嗎？"
+            "are_you_sure_you_want_to_delete_this_product": "您確定要刪除這個產品嗎？",
+            "not_supported_on_telegram": "不支援Telegram",
         },
         "vi": {
             "total": "Tổng cộng",
@@ -347,7 +360,8 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "checkout": "Thanh toán",
             "no_product": "Không có sản phẩm!",
             "confirm_deletion": "Xác nhận xóa",
-            "are_you_sure_you_want_to_delete_this_product": "Bạn có chắc chắn muốn xóa sản phẩm này không?"
+            "are_you_sure_you_want_to_delete_this_product": "Bạn có chắc chắn muốn xóa sản phẩm này không?",
+            "not_supported_on_telegram": "Không được hỗ trợ trên Telegram",
         }
     };
 });
@@ -536,7 +550,8 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             return this.products.slice(this.itemStart, this.itemEnd);
         }
         handleCheckout() {
-            if (this.onCheckout)
+            const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
+            if (canCheckout && this.onCheckout)
                 this.onCheckout();
         }
         removeProduct(id) {
@@ -599,6 +614,9 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             this.paginationElm.visible = this.totalPage > 1;
             this.listProductElm = {};
             const nodeItems = [];
+            const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
+            this.btnCheckout.caption = this.i18n.get(canCheckout ? "$checkout" : "$not_supported_on_telegram");
+            this.btnCheckout.enabled = canCheckout;
             this.pnlTotalPrice.visible = true;
             this.pnlBtnCheckout.visible = true;
             for (let i = 0; i < this.paginatedProducts.length; i++) {
@@ -633,7 +651,7 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
                     this.$render("i-label", { caption: "$total", font: { size: '1rem', bold: true } }),
                     this.$render("i-label", { id: "lbTotalPrice", font: { size: '1rem', bold: true } })),
                 this.$render("i-vstack", { id: "pnlBtnCheckout", width: "100%", verticalAlignment: "center" },
-                    this.$render("i-button", { caption: "$checkout", class: index_css_2.buttonStyle, onClick: this.handleCheckout }))));
+                    this.$render("i-button", { id: "btnCheckout", caption: "$checkout", class: index_css_2.buttonStyle, onClick: this.handleCheckout }))));
         }
     };
     __decorate([
@@ -777,6 +795,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 this.appendChild(this.scomPaymentWidget);
                 await this.scomPaymentWidget.ready();
             }
+            this.scomPaymentWidget.isOnTelegram = this.model.isOnTelegram;
             this.scomPaymentWidget.networks = this.model.getNetworks();
             this.scomPaymentWidget.tokens = this.model.getTokens();
             this.scomPaymentWidget.onStartPayment({
@@ -804,6 +823,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.i18n.init({ ...this._translations });
             this.productListElm.initTranslations(this._translations);
             this.productListElm.model = this.model;
+            this.model.env = this.getAttribute('env', true);
             const lazyLoad = this.getAttribute('lazyLoad', true, false);
             if (!lazyLoad) {
                 const title = this.getAttribute('title', true, this.title);
