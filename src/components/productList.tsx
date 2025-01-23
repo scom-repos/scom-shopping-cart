@@ -9,7 +9,8 @@ import {
   VStack,
   HStack,
   Pagination,
-  observable
+  observable,
+  Button
 } from '@ijstech/components';
 import ShoppingCartProduct from './product';
 import { IShoppingCartProduct } from '../interface';
@@ -42,6 +43,7 @@ export default class ShoppingCartProductList extends Module {
   private pnlTotalPrice: HStack;
   private lbTotalPrice: Label;
   private pnlBtnCheckout: VStack;
+  private btnCheckout: Button;
 
   @observable()
   private totalPage = 0;
@@ -105,7 +107,8 @@ export default class ShoppingCartProductList extends Module {
   }
 
   private handleCheckout() {
-    if (this.onCheckout) this.onCheckout();
+    const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
+    if (canCheckout && this.onCheckout) this.onCheckout();
   }
 
   private removeProduct(id: string) {
@@ -179,6 +182,9 @@ export default class ShoppingCartProductList extends Module {
     this.paginationElm.visible = this.totalPage > 1;
     this.listProductElm = {};
     const nodeItems: HTMLElement[] = [];
+    const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
+    this.btnCheckout.caption = this.i18n.get(canCheckout ? "$checkout" : "$not_supported_on_telegram");
+    this.btnCheckout.enabled = canCheckout;
     this.pnlTotalPrice.visible = true;
     this.pnlBtnCheckout.visible = true;
     for (let i = 0; i < this.paginatedProducts.length; i++) {
@@ -225,7 +231,7 @@ export default class ShoppingCartProductList extends Module {
           <i-label id="lbTotalPrice" font={{ size: '1rem', bold: true }} />
         </i-hstack>
         <i-vstack id="pnlBtnCheckout" width="100%" verticalAlignment="center">
-          <i-button caption="$checkout" class={buttonStyle} onClick={this.handleCheckout} />
+          <i-button id="btnCheckout" caption="$checkout" class={buttonStyle} onClick={this.handleCheckout} />
         </i-vstack>
       </i-panel>
     )

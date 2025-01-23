@@ -7,6 +7,7 @@ import { Utils } from '@ijstech/eth-wallet';
 export class Model {
   private module: Module;
   private data: IShoppingCart = { title: '', products: [] };
+  private _env: string;
   updateWidget: (reset: boolean) => void;
 
   constructor(module: Module) {
@@ -82,6 +83,22 @@ export class Model {
   set canRemove(value: boolean) {
     this.data.canRemove = value;
     this.updateWidget(true);
+  }
+
+  get env() {
+    return this._env;
+  }
+
+  set env(value: string) {
+    this._env = value;
+  }
+
+  get isOnTelegram() {
+    return this.env === "tg";
+  }
+
+  get isAvailableOnTelegram() {
+    return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
   }
 
   getData() {

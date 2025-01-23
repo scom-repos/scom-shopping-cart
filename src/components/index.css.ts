@@ -34,9 +34,8 @@ export const textEllipsis = Styles.style({
 })
 
 export const buttonStyle = Styles.style({
-    width: '100%',
-    maxWidth: 180,
-    minWidth: 90,
+    width: 'auto',
+    minWidth: 180,
     marginTop: '1rem',
     marginInline: 'auto',
     padding: '0.5rem 0.75rem',
