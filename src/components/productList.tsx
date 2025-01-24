@@ -132,6 +132,7 @@ export default class ShoppingCartProductList extends Module {
   updateQuantityFromParent(id: string, quantity: number) {
     this.listProductElm[`product-${id}`]?.updateQuantityFromParent(quantity);
     this.updateTotalValues();
+    this.btnCheckout.enabled = this.model.canCheckout;
   }
 
   private updateTotalValues() {
@@ -182,9 +183,8 @@ export default class ShoppingCartProductList extends Module {
     this.paginationElm.visible = this.totalPage > 1;
     this.listProductElm = {};
     const nodeItems: HTMLElement[] = [];
-    const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
-    this.btnCheckout.caption = this.i18n.get(canCheckout ? "$checkout" : "$not_supported_on_telegram");
-    this.btnCheckout.enabled = canCheckout;
+    this.btnCheckout.caption = this.i18n.get(this.model.canCheckoutOnTelegram ? "$checkout" : "$not_supported_on_telegram");
+    this.btnCheckout.enabled = this.model.canCheckout;
     this.pnlTotalPrice.visible = true;
     this.pnlBtnCheckout.visible = true;
     for (let i = 0; i < this.paginatedProducts.length; i++) {

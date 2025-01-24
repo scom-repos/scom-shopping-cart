@@ -34,13 +34,20 @@ export const textEllipsis = Styles.style({
 })
 
 export const buttonStyle = Styles.style({
-    width: 'auto',
-    minWidth: 180,
+    width: '100%',
+    maxWidth: 180,
+    minWidth: 90,
     marginTop: '1rem',
     marginInline: 'auto',
     padding: '0.5rem 0.75rem',
     fontSize: '1rem',
     color: Theme.colors.primary.contrastText,
     background: Theme.colors.primary.main,
-    borderRadius: 12
+    borderRadius: 12,
+    $nest: {
+        '&.disabled': {
+            background: Theme.action.disabled,
+            color: Theme.text.primary
+        }
+    }
 })

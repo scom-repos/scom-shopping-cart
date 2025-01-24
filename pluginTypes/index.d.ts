@@ -137,6 +137,9 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         set env(value: string);
         get isOnTelegram(): boolean;
         get isAvailableOnTelegram(): boolean;
+        get hasInactiveProducts(): boolean;
+        get canCheckoutOnTelegram(): boolean;
+        get canCheckout(): boolean;
         getData(): IShoppingCart;
         setData(value: IShoppingCart): Promise<void>;
         getTag(): any;
@@ -273,6 +276,9 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             hours: string;
             day: string;
             days: string;
+            booking_closed: string;
+            left_in_stock: string;
+            spots_left: string;
         };
         "zh-hant": {
             total: string;
@@ -288,6 +294,9 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             hours: string;
             day: string;
             days: string;
+            booking_closed: string;
+            left_in_stock: string;
+            spots_left: string;
         };
         vi: {
             total: string;
@@ -303,6 +312,9 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             hours: string;
             day: string;
             days: string;
+            booking_closed: string;
+            left_in_stock: string;
+            spots_left: string;
         };
     };
     export default _default_1;
@@ -342,6 +354,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private lbProviderName;
         private lbTime;
         private lbDuration;
+        private lbWarning;
         private mdAlert;
         onQuantityUpdated: (id: string, quantity: number) => void;
         onProductRemoved: (id: string) => void;
@@ -349,6 +362,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         static create(options?: ScomShoppingCartProductElement, parent?: Container): Promise<ShoppingCartProduct>;
         setProduct(product: IShoppingCartProduct, currency: string, canRemove?: boolean): void;
         private renderProduct;
+        private checkAvailableProduct;
         private renderReservationProductInfo;
         private getDurationUnit;
         private handleDelete;
@@ -357,6 +371,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private increaseQuantity;
         private decreaseQuantity;
         private handleQuantityChanged;
+        private handleQuantityClicked;
         updateQuantityFromParent(quantity: number): void;
         private handleProductClick;
         initTranslations(translations: any): void;

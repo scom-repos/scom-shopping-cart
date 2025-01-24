@@ -1,4 +1,4 @@
-import { Module } from '@ijstech/components';
+import { Module, moment } from '@ijstech/components';
 import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from './interface';
 import formSchema from './formSchema';
 import { ITokenObject, tokenStore } from '@scom/scom-token-list';
@@ -99,6 +99,23 @@ export class Model {
 
   get isAvailableOnTelegram() {
     return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
+  }
+
+  get hasInactiveProducts() {
+    return this.products.some(v => {
+      const { time, quantity, available } = v;
+      if (time && moment().isSameOrAfter(time * 1000)) return true;
+      if (available && quantity > available) return true;
+      return false;
+    })
+  }
+
+  get canCheckoutOnTelegram() {
+    return !this.isOnTelegram || this.isAvailableOnTelegram;
+  }
+
+  get canCheckout() {
+    return !this.hasInactiveProducts && this.canCheckoutOnTelegram;
   }
 
   getData() {
