@@ -11,7 +11,9 @@ import {
   Alert,
   Label,
   Image,
-  Markdown
+  Markdown,
+  moment,
+  StackLayout
 } from '@ijstech/components';
 import { alertStyle, inputStyle, textEllipsis, textRight } from './index.css';
 import { IShoppingCartProduct } from '../interface';
@@ -49,6 +51,11 @@ export default class ShoppingCartProduct extends Module {
   private lbName: Label;
   private markdownDescription: Markdown;
   private lbPrice: Label;
+  private pnlReservationProduct: StackLayout;
+  private lbServiceName: Label;
+  private lbProviderName: Label;
+  private lbTime: Label;
+  private lbDuration: Label;
   private mdAlert: Alert;
 
   onQuantityUpdated: (id: string, quantity: number) => void;
@@ -87,11 +94,37 @@ export default class ShoppingCartProduct extends Module {
     if (description && innerWidth <= 480) {
       this.markdownDescription.tooltip.content = description;
     }
+    this.renderReservationProductInfo();
     this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
     this.edtQuantity.value = quantity;
     this.iconMinus.enabled = quantity > 1;
     this.iconPlus.enabled = available == null || available > quantity;
     this.iconRemove.visible = this.canRemove;
+  }
+
+  private renderReservationProductInfo() {
+    const { parentProductId, serviceName, providerName, time, duration, durationUnit } = this.product;
+    if (!parentProductId) {
+      this.pnlReservationProduct.visible = false;
+      return;
+    }
+    this.lbServiceName.caption = serviceName || '-';
+    this.lbProviderName.caption = providerName || '-';
+    this.lbTime.caption = time ? moment(time * 1000).format('DD MMM YYYY, hh:mm A') : '-';
+    this.lbDuration.caption = duration ? `${duration} ${this.getDurationUnit(durationUnit, duration)}` : '-';
+    this.pnlReservationProduct.visible = true;
+  }
+
+  private getDurationUnit(unit: string, value: number) {
+    switch (unit) {
+      case 'minutes':
+        return this.i18n.get(value == 1 ? '$minute' : '$minutes');
+      case 'hours':
+        return this.i18n.get(value == 1 ? '$hour' : '$hours');
+      case 'days':
+        return this.i18n.get(value == 1 ? '$day' : '$days');
+    }
+    return '';
   }
 
   private handleDelete() {
@@ -150,7 +183,11 @@ export default class ShoppingCartProduct extends Module {
   }
 
   private handleProductClick() {
-    window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
+    if (this.product.parentProductId) {
+      window.location.assign(`#!/product/${this.product.stallId}/${this.product.parentProductId}/${this.product.id}`);
+    } else {
+      window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
+    }
   }
 
   initTranslations(translations: any) {
@@ -201,7 +238,7 @@ export default class ShoppingCartProduct extends Module {
               fallbackUrl="https://placehold.co/600x400?text=No+Image"
             />
           </i-vstack>
-          <i-vstack gap="0.5rem" width="100%" minWidth="3.5rem">
+          <i-vstack width="100%" minWidth="3.5rem">
             <i-stack direction="horizontal" justifyContent="space-between" gap="0.5rem">
               <i-label id="lbName" minWidth={0} overflowWrap="break-word" font={{ bold: true, size: '1rem' }} />
               <i-icon
@@ -218,14 +255,32 @@ export default class ShoppingCartProduct extends Module {
               />
             </i-stack>
             <i-markdown
-                id="markdownDescription"
-                width="100%"
-                class={textEllipsis}
-                font={{ color: Theme.text.hint, size: '0.8125rem' }}
+              id="markdownDescription"
+              width="100%"
+              class={textEllipsis}
+              font={{ color: Theme.text.hint, size: '0.8125rem' }}
             ></i-markdown>
-            <i-stack direction="horizontal" alignItems="center" justifyContent="space-between" margin={{ top: 'auto' }}>
+            <i-stack id="pnlReservationProduct" visible={false} direction="vertical" gap="0.5rem" margin={{ top: '0.5rem', bottom: '0.5rem' }}>
+              <i-stack direction="horizontal" gap="0.5rem" alignItems="center">
+                <i-icon name="briefcase" width={14} height={14} fill={Theme.text.hint} />
+                <i-label id="lbServiceName" class={textEllipsis} lineClamp={1} font={{ size: '0.8125rem' }} />
+              </i-stack>
+              <i-stack direction="horizontal" gap="0.5rem" alignItems="center">
+                <i-icon name="user" width={14} height={14} fill={Theme.text.hint} />
+                <i-label id="lbProviderName" class={textEllipsis} lineClamp={1} font={{ size: '0.8125rem' }} />
+              </i-stack>
+              <i-stack direction="horizontal" gap="0.5rem" alignItems="center">
+                <i-icon name="calendar-check" width={14} height={14} fill={Theme.text.hint} />
+                <i-label id="lbTime" wordBreak="break-word" font={{ size: '0.8125rem' }} />
+              </i-stack>
+              <i-stack direction="horizontal" gap="0.5rem" alignItems="center">
+                <i-icon name="clock" width={14} height={14} fill={Theme.text.hint} />
+                <i-label id="lbDuration" class={textEllipsis} font={{ size: '0.8125rem' }} />
+              </i-stack>
+            </i-stack>
+            <i-stack direction="horizontal" alignItems="center" justifyContent="space-between" wrap="wrap" margin={{ top: 'auto' }}>
               <i-label id="lbPrice" font={{ size: '1rem' }} />
-              <i-hstack verticalAlignment="center" horizontalAlignment="end">
+              <i-hstack verticalAlignment="center" horizontalAlignment="end" margin={{ left: 'auto' }}>
                 <i-icon
                   id="iconMinus"
                   enabled={false}

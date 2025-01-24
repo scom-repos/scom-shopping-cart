@@ -7,6 +7,12 @@ export default {
     "confirm_deletion": "Confirm Deletion",
     "are_you_sure_you_want_to_delete_this_product": "Are you sure you want to detele this product?",
     "not_supported_on_telegram": "Not supported on Telegram",
+    "minute": "minute",
+    "minutes": "minutes",
+    "hour": "hour",
+    "hours": "hours",
+    "day": "day",
+    "days": "days",
   },
   "zh-hant": {
     "total": "總計",
@@ -16,6 +22,12 @@ export default {
     "confirm_deletion": "確認刪除",
     "are_you_sure_you_want_to_delete_this_product": "您確定要刪除這個產品嗎？",
     "not_supported_on_telegram": "不支援Telegram",
+    "minute": "分鐘",
+    "minutes": "分鐘",
+    "hour": "小時",
+    "hours": "小時",
+    "day": "天",
+    "days": "天",
   },
   "vi": {
     "total": "Tổng cộng",
@@ -25,5 +37,11 @@ export default {
     "confirm_deletion": "Xác nhận xóa",
     "are_you_sure_you_want_to_delete_this_product": "Bạn có chắc chắn muốn xóa sản phẩm này không?",
     "not_supported_on_telegram": "Không được hỗ trợ trên Telegram",
+    "minute": "phút",
+    "minutes": "phút",
+    "hour": "giờ",
+    "hours": "giờ",
+    "day": "ngày",
+    "days": "ngày",
   }
 }

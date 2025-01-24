@@ -267,6 +267,12 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
             not_supported_on_telegram: string;
+            minute: string;
+            minutes: string;
+            hour: string;
+            hours: string;
+            day: string;
+            days: string;
         };
         "zh-hant": {
             total: string;
@@ -276,6 +282,12 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
             not_supported_on_telegram: string;
+            minute: string;
+            minutes: string;
+            hour: string;
+            hours: string;
+            day: string;
+            days: string;
         };
         vi: {
             total: string;
@@ -285,6 +297,12 @@ declare module "@scom/scom-shopping-cart/translations.json.ts" {
             confirm_deletion: string;
             are_you_sure_you_want_to_delete_this_product: string;
             not_supported_on_telegram: string;
+            minute: string;
+            minutes: string;
+            hour: string;
+            hours: string;
+            day: string;
+            days: string;
         };
     };
     export default _default_1;
@@ -319,6 +337,11 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private lbName;
         private markdownDescription;
         private lbPrice;
+        private pnlReservationProduct;
+        private lbServiceName;
+        private lbProviderName;
+        private lbTime;
+        private lbDuration;
         private mdAlert;
         onQuantityUpdated: (id: string, quantity: number) => void;
         onProductRemoved: (id: string) => void;
@@ -326,6 +349,8 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         static create(options?: ScomShoppingCartProductElement, parent?: Container): Promise<ShoppingCartProduct>;
         setProduct(product: IShoppingCartProduct, currency: string, canRemove?: boolean): void;
         private renderProduct;
+        private renderReservationProductInfo;
+        private getDurationUnit;
         private handleDelete;
         private onConfirmDelete;
         private updateQuantity;

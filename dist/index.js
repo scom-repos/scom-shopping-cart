@@ -344,6 +344,12 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "confirm_deletion": "Confirm Deletion",
             "are_you_sure_you_want_to_delete_this_product": "Are you sure you want to detele this product?",
             "not_supported_on_telegram": "Not supported on Telegram",
+            "minute": "minute",
+            "minutes": "minutes",
+            "hour": "hour",
+            "hours": "hours",
+            "day": "day",
+            "days": "days",
         },
         "zh-hant": {
             "total": "總計",
@@ -353,6 +359,12 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "confirm_deletion": "確認刪除",
             "are_you_sure_you_want_to_delete_this_product": "您確定要刪除這個產品嗎？",
             "not_supported_on_telegram": "不支援Telegram",
+            "minute": "分鐘",
+            "minutes": "分鐘",
+            "hour": "小時",
+            "hours": "小時",
+            "day": "天",
+            "days": "天",
         },
         "vi": {
             "total": "Tổng cộng",
@@ -362,6 +374,12 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "confirm_deletion": "Xác nhận xóa",
             "are_you_sure_you_want_to_delete_this_product": "Bạn có chắc chắn muốn xóa sản phẩm này không?",
             "not_supported_on_telegram": "Không được hỗ trợ trên Telegram",
+            "minute": "phút",
+            "minutes": "phút",
+            "hour": "giờ",
+            "hours": "giờ",
+            "day": "ngày",
+            "days": "ngày",
         }
     };
 });
@@ -403,11 +421,35 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             if (description && innerWidth <= 480) {
                 this.markdownDescription.tooltip.content = description;
             }
+            this.renderReservationProductInfo();
             this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.edtQuantity.value = quantity;
             this.iconMinus.enabled = quantity > 1;
             this.iconPlus.enabled = available == null || available > quantity;
             this.iconRemove.visible = this.canRemove;
+        }
+        renderReservationProductInfo() {
+            const { parentProductId, serviceName, providerName, time, duration, durationUnit } = this.product;
+            if (!parentProductId) {
+                this.pnlReservationProduct.visible = false;
+                return;
+            }
+            this.lbServiceName.caption = serviceName || '-';
+            this.lbProviderName.caption = providerName || '-';
+            this.lbTime.caption = time ? (0, components_2.moment)(time * 1000).format('DD MMM YYYY, hh:mm A') : '-';
+            this.lbDuration.caption = duration ? `${duration} ${this.getDurationUnit(durationUnit, duration)}` : '-';
+            this.pnlReservationProduct.visible = true;
+        }
+        getDurationUnit(unit, value) {
+            switch (unit) {
+                case 'minutes':
+                    return this.i18n.get(value == 1 ? '$minute' : '$minutes');
+                case 'hours':
+                    return this.i18n.get(value == 1 ? '$hour' : '$hours');
+                case 'days':
+                    return this.i18n.get(value == 1 ? '$day' : '$days');
+            }
+            return '';
         }
         handleDelete() {
             this.mdAlert.title = this.i18n.get('$confirm_deletion');
@@ -461,7 +503,12 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.iconPlus.enabled = available == null || available > quantity;
         }
         handleProductClick() {
-            window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
+            if (this.product.parentProductId) {
+                window.location.assign(`#!/product/${this.product.stallId}/${this.product.parentProductId}/${this.product.id}`);
+            }
+            else {
+                window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
+            }
         }
         initTranslations(translations) {
             this.i18n.init({ ...translations });
@@ -481,14 +528,27 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                 this.$render("i-hstack", { gap: "0.5rem", width: "100%", height: "100%", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.75rem', style: 'solid', width: 1, color: '#ffffff4d' }, cursor: "pointer", onClick: this.handleProductClick },
                     this.$render("i-vstack", { width: 100, height: "auto", horizontalAlignment: "center", background: { color: Theme.text.primary }, border: { radius: 4 }, padding: { top: '0.25rem', left: '0.25rem', bottom: '0.25rem', right: '0.25rem' }, alignSelf: "start", stack: { shrink: '0' } },
                         this.$render("i-image", { id: "imgProduct", width: "100%", height: "auto", margin: { left: 'auto', right: 'auto', top: 'auto', bottom: 'auto' }, maxHeight: 200, objectFit: "contain", fallbackUrl: "https://placehold.co/600x400?text=No+Image" })),
-                    this.$render("i-vstack", { gap: "0.5rem", width: "100%", minWidth: "3.5rem" },
+                    this.$render("i-vstack", { width: "100%", minWidth: "3.5rem" },
                         this.$render("i-stack", { direction: "horizontal", justifyContent: "space-between", gap: "0.5rem" },
                             this.$render("i-label", { id: "lbName", minWidth: 0, overflowWrap: "break-word", font: { bold: true, size: '1rem' } }),
                             this.$render("i-icon", { id: "iconRemove", visible: false, name: "trash", fill: Theme.colors.error.dark, width: 20, height: 20, padding: { top: 2, bottom: 2, left: 2, right: 2 }, stack: { shrink: '0' }, cursor: "pointer", onClick: this.handleDelete.bind(this) })),
                         this.$render("i-markdown", { id: "markdownDescription", width: "100%", class: index_css_1.textEllipsis, font: { color: Theme.text.hint, size: '0.8125rem' } }),
-                        this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", margin: { top: 'auto' } },
+                        this.$render("i-stack", { id: "pnlReservationProduct", visible: false, direction: "vertical", gap: "0.5rem", margin: { top: '0.5rem', bottom: '0.5rem' } },
+                            this.$render("i-stack", { direction: "horizontal", gap: "0.5rem", alignItems: "center" },
+                                this.$render("i-icon", { name: "briefcase", width: 14, height: 14, fill: Theme.text.hint }),
+                                this.$render("i-label", { id: "lbServiceName", class: index_css_1.textEllipsis, lineClamp: 1, font: { size: '0.8125rem' } })),
+                            this.$render("i-stack", { direction: "horizontal", gap: "0.5rem", alignItems: "center" },
+                                this.$render("i-icon", { name: "user", width: 14, height: 14, fill: Theme.text.hint }),
+                                this.$render("i-label", { id: "lbProviderName", class: index_css_1.textEllipsis, lineClamp: 1, font: { size: '0.8125rem' } })),
+                            this.$render("i-stack", { direction: "horizontal", gap: "0.5rem", alignItems: "center" },
+                                this.$render("i-icon", { name: "calendar-check", width: 14, height: 14, fill: Theme.text.hint }),
+                                this.$render("i-label", { id: "lbTime", wordBreak: "break-word", font: { size: '0.8125rem' } })),
+                            this.$render("i-stack", { direction: "horizontal", gap: "0.5rem", alignItems: "center" },
+                                this.$render("i-icon", { name: "clock", width: 14, height: 14, fill: Theme.text.hint }),
+                                this.$render("i-label", { id: "lbDuration", class: index_css_1.textEllipsis, font: { size: '0.8125rem' } }))),
+                        this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", wrap: "wrap", margin: { top: 'auto' } },
                             this.$render("i-label", { id: "lbPrice", font: { size: '1rem' } }),
-                            this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end" },
+                            this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end", margin: { left: 'auto' } },
                                 this.$render("i-icon", { id: "iconMinus", enabled: false, name: "minus-circle", width: 24, height: 24, padding: { top: 2, bottom: 2, left: 2, right: 2 }, fill: Theme.text.primary, cursor: "pointer", onClick: this.decreaseQuantity }),
                                 this.$render("i-input", { id: "edtQuantity", class: index_css_1.inputStyle, width: 40, height: "auto", inputType: "number", border: { style: 'none' }, background: { color: 'transparent' }, onChanged: this.handleQuantityChanged }),
                                 this.$render("i-icon", { id: "iconPlus", enabled: false, name: "plus-circle", width: 24, height: 24, padding: { top: 2, bottom: 2, left: 2, right: 2 }, fill: Theme.text.primary, cursor: "pointer", onClick: this.increaseQuantity }))))),
