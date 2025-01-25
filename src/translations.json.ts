@@ -13,6 +13,9 @@ export default {
     "hours": "hours",
     "day": "day",
     "days": "days",
+    "booking_closed": "Booking closed",
+    "left_in_stock": "Only {{number}} left in stock",
+    "spots_left": "Only {{number}} spots left",
   },
   "zh-hant": {
     "total": "總計",
@@ -28,6 +31,9 @@ export default {
     "hours": "小時",
     "day": "天",
     "days": "天",
+    "booking_closed": "預訂已關閉",
+    "left_in_stock": "僅剩 {{number}} 件庫存",
+    "spots_left": "僅剩 {{number}} 個名額",
   },
   "vi": {
     "total": "Tổng cộng",
@@ -43,5 +49,8 @@ export default {
     "hours": "giờ",
     "day": "ngày",
     "days": "ngày",
+    "booking_closed": "Đặt chỗ đã đóng",
+    "left_in_stock": "Chỉ còn lại {{number}} tồn kho",
+    "spots_left": "Chỉ còn lại {{number}} chỗ",
   }
 }

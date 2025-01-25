@@ -56,6 +56,7 @@ export default class ShoppingCartProduct extends Module {
   private lbProviderName: Label;
   private lbTime: Label;
   private lbDuration: Label;
+  private lbWarning: Label;
   private mdAlert: Alert;
 
   onQuantityUpdated: (id: string, quantity: number) => void;
@@ -80,7 +81,7 @@ export default class ShoppingCartProduct extends Module {
 
   private async renderProduct() {
     if (!this.imgProduct || !this.product) return;
-    const { images, price, name, description, quantity, available } = this.product;
+    const { images, price, name, description, quantity } = this.product;
     if (images && images.length) {
       this.imgProduct.url = images[0];
     }
@@ -97,9 +98,30 @@ export default class ShoppingCartProduct extends Module {
     this.renderReservationProductInfo();
     this.lbPrice.caption = `${this.currency} ${FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
     this.edtQuantity.value = quantity;
-    this.iconMinus.enabled = quantity > 1;
-    this.iconPlus.enabled = available == null || available > quantity;
     this.iconRemove.visible = this.canRemove;
+    this.checkAvailableProduct(quantity);
+  }
+
+  private checkAvailableProduct(quantity: number) {
+    const { available, time } = this.product;
+    let isWarningShown = false;
+    let warningText = '';
+    const isBookingClosed = time && moment().isSameOrAfter(time * 1000);
+    if (isBookingClosed) {
+      isWarningShown = true;
+      warningText = this.i18n.get('$booking_closed');
+    } else if (available && quantity > available) {
+      isWarningShown = true;
+      warningText = this.i18n.get(time ? '$spots_left' : '$left_in_stock', { number: available.toString() });
+    }
+    this.lbWarning.caption = warningText;
+    this.lbWarning.visible = isWarningShown;
+    const isMinusEnabled = !isBookingClosed && quantity > 1;
+    this.iconMinus.enabled = isMinusEnabled;
+    this.iconMinus.cursor = isMinusEnabled ? 'pointer' : 'default';
+    const isPlusEnabled = !isBookingClosed && (available == null || available > quantity);
+    this.iconPlus.enabled = isPlusEnabled;
+    this.iconPlus.cursor = isPlusEnabled ? 'pointer' : 'default';
   }
 
   private renderReservationProductInfo() {
@@ -151,8 +173,7 @@ export default class ShoppingCartProduct extends Module {
         this.edtQuantity.value = --quantity;
       }
     }
-    this.iconMinus.enabled = quantity > 1;
-    this.iconPlus.enabled = available == null || available > quantity;
+    this.checkAvailableProduct(quantity);
     if (this.onQuantityUpdated) this.onQuantityUpdated(this.product.id, quantity);
   }
 
@@ -165,21 +186,19 @@ export default class ShoppingCartProduct extends Module {
   }
 
   private handleQuantityChanged() {
-    const available = this.product.available;
     const quantity = Number(this.edtQuantity.value) || 1;
     if (!Number.isInteger(quantity)) {
       this.edtQuantity.value = Math.trunc(quantity);
     }
-    this.iconMinus.enabled = quantity > 1;
-    this.iconPlus.enabled = available == null || available > this.edtQuantity.value;
+    this.checkAvailableProduct(quantity);
     if (this.onQuantityUpdated) this.onQuantityUpdated(this.product.id, quantity);
   }
 
+  private handleQuantityClicked() { }
+
   updateQuantityFromParent(quantity: number) {
     this.edtQuantity.value = quantity;
-    const available = this.product.available;
-    this.iconMinus.enabled = quantity > 1;
-    this.iconPlus.enabled = available == null || available > quantity;
+    this.checkAvailableProduct(quantity);
   }
 
   private handleProductClick() {
@@ -301,6 +320,7 @@ export default class ShoppingCartProduct extends Module {
                   border={{ style: 'none' }}
                   background={{ color: 'transparent' }}
                   onChanged={this.handleQuantityChanged}
+                  onClick={this.handleQuantityClicked}
                 />
                 <i-icon
                   id="iconPlus"
@@ -315,6 +335,7 @@ export default class ShoppingCartProduct extends Module {
                 />
               </i-hstack>
             </i-stack>
+            <i-label id="lbWarning" visible={false} font={{ size: '0.8125rem', color: Theme.colors.error.main, bold: true }} class="text-right" margin={{ top: '0.25rem', left: 'auto' }} />
           </i-vstack>
         </i-hstack>
         <i-alert id="mdAlert" status="confirm" class={alertStyle} onConfirm={this.onConfirmDelete} />

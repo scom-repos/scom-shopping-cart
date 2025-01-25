@@ -92,7 +92,7 @@ define("@scom/scom-shopping-cart/formSchema.ts", ["require", "exports"], functio
         }
     };
 });
-define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-shopping-cart/formSchema.ts", "@scom/scom-token-list", "@ijstech/eth-wallet"], function (require, exports, formSchema_1, scom_token_list_1, eth_wallet_1) {
+define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/formSchema.ts", "@scom/scom-token-list", "@ijstech/eth-wallet"], function (require, exports, components_1, formSchema_1, scom_token_list_1, eth_wallet_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Model = void 0;
@@ -167,6 +167,22 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
         }
         get isAvailableOnTelegram() {
             return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
+        }
+        get hasInactiveProducts() {
+            return this.products.some(v => {
+                const { time, quantity, available } = v;
+                if (time && (0, components_1.moment)().isSameOrAfter(time * 1000))
+                    return true;
+                if (available && quantity > available)
+                    return true;
+                return false;
+            });
+        }
+        get canCheckoutOnTelegram() {
+            return !this.isOnTelegram || this.isAvailableOnTelegram;
+        }
+        get canCheckout() {
+            return !this.hasInactiveProducts && this.canCheckoutOnTelegram;
         }
         getData() {
             return this.data;
@@ -286,15 +302,15 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@scom/scom-s
     }
     exports.Model = Model;
 });
-define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.buttonStyle = exports.textEllipsis = exports.alertStyle = exports.inputStyle = exports.textRight = void 0;
-    const Theme = components_1.Styles.Theme.ThemeVars;
-    exports.textRight = components_1.Styles.style({
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    exports.textRight = components_2.Styles.style({
         textAlign: 'right'
     });
-    exports.inputStyle = components_1.Styles.style({
+    exports.inputStyle = components_2.Styles.style({
         $nest: {
             'input': {
                 textAlign: 'center',
@@ -302,7 +318,7 @@ define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports"
             }
         }
     });
-    exports.alertStyle = components_1.Styles.style({
+    exports.alertStyle = components_2.Styles.style({
         $nest: {
             'i-vstack i-label': {
                 textAlign: 'center'
@@ -312,23 +328,30 @@ define("@scom/scom-shopping-cart/components/index.css.ts", ["require", "exports"
             }
         }
     });
-    exports.textEllipsis = components_1.Styles.style({
+    exports.textEllipsis = components_2.Styles.style({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         display: '-webkit-box',
         '-webkit-line-clamp': 2,
         WebkitBoxOrient: 'vertical',
     });
-    exports.buttonStyle = components_1.Styles.style({
-        width: 'auto',
-        minWidth: 180,
+    exports.buttonStyle = components_2.Styles.style({
+        width: '100%',
+        maxWidth: 180,
+        minWidth: 90,
         marginTop: '1rem',
         marginInline: 'auto',
         padding: '0.5rem 0.75rem',
         fontSize: '1rem',
         color: Theme.colors.primary.contrastText,
         background: Theme.colors.primary.main,
-        borderRadius: 12
+        borderRadius: 12,
+        $nest: {
+            '&.disabled': {
+                background: Theme.action.disabled,
+                color: Theme.text.primary
+            }
+        }
     });
 });
 define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], function (require, exports) {
@@ -350,6 +373,9 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "hours": "hours",
             "day": "day",
             "days": "days",
+            "booking_closed": "Booking closed",
+            "left_in_stock": "Only {{number}} left in stock",
+            "spots_left": "Only {{number}} spots left",
         },
         "zh-hant": {
             "total": "總計",
@@ -365,6 +391,9 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "hours": "小時",
             "day": "天",
             "days": "天",
+            "booking_closed": "預訂已關閉",
+            "left_in_stock": "僅剩 {{number}} 件庫存",
+            "spots_left": "僅剩 {{number}} 個名額",
         },
         "vi": {
             "total": "Tổng cộng",
@@ -380,14 +409,17 @@ define("@scom/scom-shopping-cart/translations.json.ts", ["require", "exports"], 
             "hours": "giờ",
             "day": "ngày",
             "days": "ngày",
+            "booking_closed": "Đặt chỗ đã đóng",
+            "left_in_stock": "Chỉ còn lại {{number}} tồn kho",
+            "spots_left": "Chỉ còn lại {{number}} chỗ",
         }
     };
 });
-define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_2, index_css_1, translations_json_1) {
+define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_3, index_css_1, translations_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    let ShoppingCartProduct = class ShoppingCartProduct extends components_2.Module {
+    const Theme = components_3.Styles.Theme.ThemeVars;
+    let ShoppingCartProduct = class ShoppingCartProduct extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
             this.canRemove = false;
@@ -406,7 +438,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
         async renderProduct() {
             if (!this.imgProduct || !this.product)
                 return;
-            const { images, price, name, description, quantity, available } = this.product;
+            const { images, price, name, description, quantity } = this.product;
             if (images && images.length) {
                 this.imgProduct.url = images[0];
             }
@@ -422,11 +454,32 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                 this.markdownDescription.tooltip.content = description;
             }
             this.renderReservationProductInfo();
-            this.lbPrice.caption = `${this.currency} ${components_2.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
+            this.lbPrice.caption = `${this.currency} ${components_3.FormatUtils.formatNumber(price, { decimalFigures: 6, hasTrailingZero: false })}`;
             this.edtQuantity.value = quantity;
-            this.iconMinus.enabled = quantity > 1;
-            this.iconPlus.enabled = available == null || available > quantity;
             this.iconRemove.visible = this.canRemove;
+            this.checkAvailableProduct(quantity);
+        }
+        checkAvailableProduct(quantity) {
+            const { available, time } = this.product;
+            let isWarningShown = false;
+            let warningText = '';
+            const isBookingClosed = time && (0, components_3.moment)().isSameOrAfter(time * 1000);
+            if (isBookingClosed) {
+                isWarningShown = true;
+                warningText = this.i18n.get('$booking_closed');
+            }
+            else if (available && quantity > available) {
+                isWarningShown = true;
+                warningText = this.i18n.get(time ? '$spots_left' : '$left_in_stock', { number: available.toString() });
+            }
+            this.lbWarning.caption = warningText;
+            this.lbWarning.visible = isWarningShown;
+            const isMinusEnabled = !isBookingClosed && quantity > 1;
+            this.iconMinus.enabled = isMinusEnabled;
+            this.iconMinus.cursor = isMinusEnabled ? 'pointer' : 'default';
+            const isPlusEnabled = !isBookingClosed && (available == null || available > quantity);
+            this.iconPlus.enabled = isPlusEnabled;
+            this.iconPlus.cursor = isPlusEnabled ? 'pointer' : 'default';
         }
         renderReservationProductInfo() {
             const { parentProductId, serviceName, providerName, time, duration, durationUnit } = this.product;
@@ -436,7 +489,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             }
             this.lbServiceName.caption = serviceName || '-';
             this.lbProviderName.caption = providerName || '-';
-            this.lbTime.caption = time ? (0, components_2.moment)(time * 1000).format('DD MMM YYYY, hh:mm A') : '-';
+            this.lbTime.caption = time ? (0, components_3.moment)(time * 1000).format('DD MMM YYYY, hh:mm A') : '-';
             this.lbDuration.caption = duration ? `${duration} ${this.getDurationUnit(durationUnit, duration)}` : '-';
             this.pnlReservationProduct.visible = true;
         }
@@ -474,8 +527,7 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                     this.edtQuantity.value = --quantity;
                 }
             }
-            this.iconMinus.enabled = quantity > 1;
-            this.iconPlus.enabled = available == null || available > quantity;
+            this.checkAvailableProduct(quantity);
             if (this.onQuantityUpdated)
                 this.onQuantityUpdated(this.product.id, quantity);
         }
@@ -486,21 +538,18 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
             this.updateQuantity(false);
         }
         handleQuantityChanged() {
-            const available = this.product.available;
             const quantity = Number(this.edtQuantity.value) || 1;
             if (!Number.isInteger(quantity)) {
                 this.edtQuantity.value = Math.trunc(quantity);
             }
-            this.iconMinus.enabled = quantity > 1;
-            this.iconPlus.enabled = available == null || available > this.edtQuantity.value;
+            this.checkAvailableProduct(quantity);
             if (this.onQuantityUpdated)
                 this.onQuantityUpdated(this.product.id, quantity);
         }
+        handleQuantityClicked() { }
         updateQuantityFromParent(quantity) {
             this.edtQuantity.value = quantity;
-            const available = this.product.available;
-            this.iconMinus.enabled = quantity > 1;
-            this.iconPlus.enabled = available == null || available > quantity;
+            this.checkAvailableProduct(quantity);
         }
         handleProductClick() {
             if (this.product.parentProductId) {
@@ -550,22 +599,23 @@ define("@scom/scom-shopping-cart/components/product.tsx", ["require", "exports",
                             this.$render("i-label", { id: "lbPrice", font: { size: '1rem' } }),
                             this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "end", margin: { left: 'auto' } },
                                 this.$render("i-icon", { id: "iconMinus", enabled: false, name: "minus-circle", width: 24, height: 24, padding: { top: 2, bottom: 2, left: 2, right: 2 }, fill: Theme.text.primary, cursor: "pointer", onClick: this.decreaseQuantity }),
-                                this.$render("i-input", { id: "edtQuantity", class: index_css_1.inputStyle, width: 40, height: "auto", inputType: "number", border: { style: 'none' }, background: { color: 'transparent' }, onChanged: this.handleQuantityChanged }),
-                                this.$render("i-icon", { id: "iconPlus", enabled: false, name: "plus-circle", width: 24, height: 24, padding: { top: 2, bottom: 2, left: 2, right: 2 }, fill: Theme.text.primary, cursor: "pointer", onClick: this.increaseQuantity }))))),
+                                this.$render("i-input", { id: "edtQuantity", class: index_css_1.inputStyle, width: 40, height: "auto", inputType: "number", border: { style: 'none' }, background: { color: 'transparent' }, onChanged: this.handleQuantityChanged, onClick: this.handleQuantityClicked }),
+                                this.$render("i-icon", { id: "iconPlus", enabled: false, name: "plus-circle", width: 24, height: 24, padding: { top: 2, bottom: 2, left: 2, right: 2 }, fill: Theme.text.primary, cursor: "pointer", onClick: this.increaseQuantity }))),
+                        this.$render("i-label", { id: "lbWarning", visible: false, font: { size: '0.8125rem', color: Theme.colors.error.main, bold: true }, class: "text-right", margin: { top: '0.25rem', left: 'auto' } }))),
                 this.$render("i-alert", { id: "mdAlert", status: "confirm", class: index_css_1.alertStyle, onConfirm: this.onConfirmDelete })));
         }
     };
     ShoppingCartProduct = __decorate([
-        components_2.customModule,
-        (0, components_2.customElements)('i-scom-shopping-cart--product')
+        components_3.customModule,
+        (0, components_3.customElements)('i-scom-shopping-cart--product')
     ], ShoppingCartProduct);
     exports.default = ShoppingCartProduct;
 });
-define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/product.tsx", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_3, product_1, index_css_2, translations_json_2) {
+define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/components/product.tsx", "@scom/scom-shopping-cart/components/index.css.ts", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, product_1, index_css_2, translations_json_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const pageSize = 5;
-    let ShoppingCartProductList = class ShoppingCartProductList extends components_3.Module {
+    let ShoppingCartProductList = class ShoppingCartProductList extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
             this.listProductElm = {};
@@ -634,9 +684,10 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
         updateQuantityFromParent(id, quantity) {
             this.listProductElm[`product-${id}`]?.updateQuantityFromParent(quantity);
             this.updateTotalValues();
+            this.btnCheckout.enabled = this.model.canCheckout;
         }
         updateTotalValues() {
-            this.lbTotalPrice.caption = `${this.currencyText} ${components_3.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
+            this.lbTotalPrice.caption = `${this.currencyText} ${components_4.FormatUtils.formatNumber(this.totalPrice, { decimalFigures: 6, hasTrailingZero: false })}`;
         }
         async onSelectIndex() {
             if (!this.model)
@@ -674,9 +725,8 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
             this.paginationElm.visible = this.totalPage > 1;
             this.listProductElm = {};
             const nodeItems = [];
-            const canCheckout = !this.model.isOnTelegram || this.model.isAvailableOnTelegram;
-            this.btnCheckout.caption = this.i18n.get(canCheckout ? "$checkout" : "$not_supported_on_telegram");
-            this.btnCheckout.enabled = canCheckout;
+            this.btnCheckout.caption = this.i18n.get(this.model.canCheckoutOnTelegram ? "$checkout" : "$not_supported_on_telegram");
+            this.btnCheckout.enabled = this.model.canCheckout;
             this.pnlTotalPrice.visible = true;
             this.pnlBtnCheckout.visible = true;
             for (let i = 0; i < this.paginatedProducts.length; i++) {
@@ -715,11 +765,11 @@ define("@scom/scom-shopping-cart/components/productList.tsx", ["require", "expor
         }
     };
     __decorate([
-        (0, components_3.observable)()
+        (0, components_4.observable)()
     ], ShoppingCartProductList.prototype, "totalPage", void 0);
     ShoppingCartProductList = __decorate([
-        components_3.customModule,
-        (0, components_3.customElements)('i-scom-shopping-cart--product-list')
+        components_4.customModule,
+        (0, components_4.customElements)('i-scom-shopping-cart--product-list')
     ], ShoppingCartProductList);
     exports.default = ShoppingCartProductList;
 });
@@ -729,10 +779,10 @@ define("@scom/scom-shopping-cart/components/index.ts", ["require", "exports", "@
     exports.ShoppingCartProductList = void 0;
     exports.ShoppingCartProductList = productList_1.default;
 });
-define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_4, model_1, scom_payment_widget_1, translations_json_3) {
+define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components", "@scom/scom-shopping-cart/model.ts", "@scom/scom-payment-widget", "@scom/scom-shopping-cart/translations.json.ts"], function (require, exports, components_5, model_1, scom_payment_widget_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    let ScomShoppingCart = class ScomShoppingCart extends components_4.Module {
+    let ScomShoppingCart = class ScomShoppingCart extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
             this.tag = {};
@@ -914,8 +964,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
         }
     };
     ScomShoppingCart = __decorate([
-        components_4.customModule,
-        (0, components_4.customElements)('i-scom-shopping-cart')
+        components_5.customModule,
+        (0, components_5.customElements)('i-scom-shopping-cart')
     ], ScomShoppingCart);
     exports.default = ScomShoppingCart;
 });
