@@ -166,7 +166,7 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@ijstech/com
             return this.env === "tg";
         }
         get isAvailableOnTelegram() {
-            return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
+            return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => ['TON', 'TON-TESTNET'].includes(opt.networkCode)) != null;
         }
         get hasInactiveProducts() {
             return this.products.some(v => {

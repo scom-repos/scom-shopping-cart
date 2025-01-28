@@ -98,7 +98,7 @@ export class Model {
   }
 
   get isAvailableOnTelegram() {
-    return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => opt.networkCode === "TON") != null;
+    return !!this.stripeAccountId || this.cryptoPayoutOptions?.find(opt => ['TON', 'TON-TESTNET'].includes(opt.networkCode)) != null;
   }
 
   get hasInactiveProducts() {
