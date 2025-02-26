@@ -1,6 +1,7 @@
+/// <reference path="@scom/scom-payment-widget/index.d.ts" />
 /// <amd-module name="@scom/scom-shopping-cart/interface.ts" />
 declare module "@scom/scom-shopping-cart/interface.ts" {
-    import { IProduct } from "@scom/scom-payment-widget";
+    import { ICryptoPayoutOption, IProduct, IRewardsPointsOption } from "@scom/scom-payment-widget";
     export interface IShoppingCart {
         title: string;
         products: IProduct[];
@@ -9,17 +10,11 @@ declare module "@scom/scom-shopping-cart/interface.ts" {
         baseStripeApi?: string;
         canRemove?: boolean;
         cryptoPayoutOptions?: ICryptoPayoutOption[];
+        rewardsPointsOptions?: IRewardsPointsOption[];
         stripeAccountId?: string;
     }
     export interface IShoppingCartProduct extends IProduct {
         available?: number;
-    }
-    export interface ICryptoPayoutOption {
-        chainId?: string;
-        cryptoCode: string;
-        networkCode: string;
-        tokenAddress?: string;
-        walletAddress: string;
     }
 }
 /// <amd-module name="@scom/scom-shopping-cart/formSchema.ts" />
@@ -108,8 +103,9 @@ declare module "@scom/scom-shopping-cart/formSchema.ts" {
 /// <amd-module name="@scom/scom-shopping-cart/model.ts" />
 declare module "@scom/scom-shopping-cart/model.ts" {
     import { Module } from '@ijstech/components';
-    import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from "@scom/scom-shopping-cart/interface.ts";
+    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
     import { ITokenObject } from '@scom/scom-token-list';
+    import { ICryptoPayoutOption } from '@scom/scom-payment-widget';
     export class Model {
         private module;
         private data;
@@ -125,6 +121,7 @@ declare module "@scom/scom-shopping-cart/model.ts" {
         set title(value: string);
         get cryptoPayoutOptions(): ICryptoPayoutOption[];
         get stripeAccountId(): string;
+        get rewardsPointsOptions(): import("@scom/scom-payment-widget").IRewardsPointsOption[];
         get totalPrice(): number;
         get totalQuantity(): number;
         get returnUrl(): string;
@@ -447,8 +444,8 @@ declare module "@scom/scom-shopping-cart/components/index.ts" {
 /// <amd-module name="@scom/scom-shopping-cart" />
 declare module "@scom/scom-shopping-cart" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from "@scom/scom-shopping-cart/interface.ts";
-    import { IPaymentActivity, IPlaceOrder } from '@scom/scom-payment-widget';
+    import { IShoppingCartProduct, IShoppingCart } from "@scom/scom-shopping-cart/interface.ts";
+    import { ICryptoPayoutOption, IPaymentActivity, IPlaceOrder } from '@scom/scom-payment-widget';
     interface ScomShoppingCartElement extends ControlElement {
         translations?: any;
         title?: string;
@@ -464,6 +461,7 @@ declare module "@scom/scom-shopping-cart" {
         onProductRemoved?: (id: string) => void;
         onPaymentSuccess?: (data: IPaymentActivity) => void;
         placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
+        fetchRewardsPointBalance?: (creatorId: string, communityId: string) => Promise<number>;
     }
     global {
         namespace JSX {
@@ -482,6 +480,7 @@ declare module "@scom/scom-shopping-cart" {
         onProductRemoved: (id: string) => void;
         onPaymentSuccess: (data: IPaymentActivity) => Promise<void>;
         placeMarketplaceOrder: (data: IPlaceOrder) => Promise<void>;
+        fetchRewardsPointBalance: (creatorId: string, communityId: string) => Promise<number>;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomShoppingCartElement, parent?: Container): Promise<ScomShoppingCart>;
         get products(): IShoppingCartProduct[];
@@ -603,6 +602,7 @@ declare module "@scom/scom-shopping-cart" {
         private renderProducts;
         private handlePaymentSuccess;
         private handlePlaceMarketplaceOrder;
+        private handleFetchRewardsPointBalance;
         private handleCheckout;
         private initModel;
         init(): Promise<void>;

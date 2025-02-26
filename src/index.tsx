@@ -5,9 +5,9 @@ import {
     ControlElement,
     customElements,
 } from '@ijstech/components';
-import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from './interface';
+import { IShoppingCartProduct, IShoppingCart } from './interface';
 import { Model } from './model';
-import { IPaymentActivity, IPlaceOrder, ScomPaymentWidget } from '@scom/scom-payment-widget';
+import { ICryptoPayoutOption, IPaymentActivity, IPlaceOrder, ScomPaymentWidget } from '@scom/scom-payment-widget';
 import { ShoppingCartProductList } from './components/index';
 import translations from './translations.json';
 
@@ -26,6 +26,7 @@ interface ScomShoppingCartElement extends ControlElement {
     onProductRemoved?: (id: string) => void;
     onPaymentSuccess?: (data: IPaymentActivity) => void;
     placeMarketplaceOrder?: (data: IPlaceOrder) => Promise<void>;
+	fetchRewardsPointBalance?: (creatorId: string, communityId: string) => Promise<number>;
 }
 
 declare global {
@@ -49,6 +50,7 @@ export default class ScomShoppingCart extends Module {
     onProductRemoved: (id: string) => void;
     onPaymentSuccess: (data: IPaymentActivity) => Promise<void>;
     placeMarketplaceOrder: (data: IPlaceOrder) => Promise<void>;
+	fetchRewardsPointBalance: (creatorId: string, communityId: string) => Promise<number>;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -185,6 +187,14 @@ export default class ScomShoppingCart extends Module {
         if (this.placeMarketplaceOrder) await this.placeMarketplaceOrder(data);
     }
 
+    private async handleFetchRewardsPointBalance(creatorId: string, communityId: string) {
+        let balance = 0;
+        if (this.fetchRewardsPointBalance) {
+            balance = await this.fetchRewardsPointBalance(creatorId, communityId);
+        }
+        return balance;
+    }
+
     private async handleCheckout() {
         if (!this.scomPaymentWidget) {
             this.scomPaymentWidget = new ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
@@ -192,6 +202,7 @@ export default class ScomShoppingCart extends Module {
             this.scomPaymentWidget.baseStripeApi = this.baseStripeApi;
             this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
             this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
+            this.scomPaymentWidget.fetchRewardsPointBalance = this.handleFetchRewardsPointBalance.bind(this);
             this.appendChild(this.scomPaymentWidget);
             await this.scomPaymentWidget.ready();
         }
@@ -203,7 +214,8 @@ export default class ScomShoppingCart extends Module {
             products: this.products,
             currency: this.currency,
             cryptoPayoutOptions: this.model.cryptoPayoutOptions,
-            stripeAccountId: this.model.stripeAccountId
+            stripeAccountId: this.model.stripeAccountId,
+            rewardsPointsOptions: this.model.rewardsPointsOptions
         });
     }
 
@@ -220,6 +232,7 @@ export default class ScomShoppingCart extends Module {
         this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
         this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
         this.placeMarketplaceOrder = this.getAttribute('placeMarketplaceOrder', true) || this.placeMarketplaceOrder;
+        this.fetchRewardsPointBalance = this.getAttribute('fetchRewardsPointBalance', true) || this.fetchRewardsPointBalance;
         const translationsProp = this.getAttribute('translations', true);
         this._translations = this.model.mergeI18nData([translations, translationsProp]);
         this.i18n.init({ ...this._translations });

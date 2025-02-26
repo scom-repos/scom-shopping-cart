@@ -1,4 +1,4 @@
-import { IProduct } from "@scom/scom-payment-widget";
+import { ICryptoPayoutOption, IProduct, IRewardsPointsOption } from "@scom/scom-payment-widget";
 
 export interface IShoppingCart {
     title: string;
@@ -8,16 +8,9 @@ export interface IShoppingCart {
     baseStripeApi?: string;
     canRemove?: boolean;
     cryptoPayoutOptions?: ICryptoPayoutOption[];
+    rewardsPointsOptions?: IRewardsPointsOption[];
     stripeAccountId?: string;
 }
 export interface IShoppingCartProduct extends IProduct {
     available?: number;
-}
-
-export interface ICryptoPayoutOption {
-    chainId?: string;
-	cryptoCode: string; 
-	networkCode: string; 
-	tokenAddress?: string;
-	walletAddress: string; 
 }
