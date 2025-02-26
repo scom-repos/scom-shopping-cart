@@ -1,8 +1,9 @@
 import { Module, moment } from '@ijstech/components';
-import { IShoppingCartProduct, IShoppingCart, ICryptoPayoutOption } from './interface';
+import { IShoppingCartProduct, IShoppingCart } from './interface';
 import formSchema from './formSchema';
 import { ITokenObject, tokenStore } from '@scom/scom-token-list';
 import { Utils } from '@ijstech/eth-wallet';
+import { ICryptoPayoutOption } from '@scom/scom-payment-widget';
 
 export class Model {
   private module: Module;
@@ -51,6 +52,10 @@ export class Model {
   get stripeAccountId() {
     return this.data.stripeAccountId;
   }
+
+	get rewardsPointsOptions() {
+		return this.data.rewardsPointsOptions || [];
+	}
 
   get totalPrice() {
     return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;

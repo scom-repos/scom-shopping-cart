@@ -131,6 +131,9 @@ define("@scom/scom-shopping-cart/model.ts", ["require", "exports", "@ijstech/com
         get stripeAccountId() {
             return this.data.stripeAccountId;
         }
+        get rewardsPointsOptions() {
+            return this.data.rewardsPointsOptions || [];
+        }
         get totalPrice() {
             return this.products?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
         }
@@ -895,6 +898,13 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             if (this.placeMarketplaceOrder)
                 await this.placeMarketplaceOrder(data);
         }
+        async handleFetchRewardsPointBalance(creatorId, communityId) {
+            let balance = 0;
+            if (this.fetchRewardsPointBalance) {
+                balance = await this.fetchRewardsPointBalance(creatorId, communityId);
+            }
+            return balance;
+        }
         async handleCheckout() {
             if (!this.scomPaymentWidget) {
                 this.scomPaymentWidget = new scom_payment_widget_1.ScomPaymentWidget(undefined, { display: 'block', margin: { top: '1rem' } });
@@ -902,6 +912,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 this.scomPaymentWidget.baseStripeApi = this.baseStripeApi;
                 this.scomPaymentWidget.onPaymentSuccess = this.handlePaymentSuccess.bind(this);
                 this.scomPaymentWidget.placeMarketplaceOrder = this.handlePlaceMarketplaceOrder.bind(this);
+                this.scomPaymentWidget.fetchRewardsPointBalance = this.handleFetchRewardsPointBalance.bind(this);
                 this.appendChild(this.scomPaymentWidget);
                 await this.scomPaymentWidget.ready();
             }
@@ -913,7 +924,8 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
                 products: this.products,
                 currency: this.currency,
                 cryptoPayoutOptions: this.model.cryptoPayoutOptions,
-                stripeAccountId: this.model.stripeAccountId
+                stripeAccountId: this.model.stripeAccountId,
+                rewardsPointsOptions: this.model.rewardsPointsOptions
             });
         }
         initModel() {
@@ -928,6 +940,7 @@ define("@scom/scom-shopping-cart", ["require", "exports", "@ijstech/components",
             this.onQuantityUpdated = this.getAttribute('onQuantityUpdated', true) || this.onQuantityUpdated;
             this.onProductRemoved = this.getAttribute('onProductRemoved', true) || this.onProductRemoved;
             this.placeMarketplaceOrder = this.getAttribute('placeMarketplaceOrder', true) || this.placeMarketplaceOrder;
+            this.fetchRewardsPointBalance = this.getAttribute('fetchRewardsPointBalance', true) || this.fetchRewardsPointBalance;
             const translationsProp = this.getAttribute('translations', true);
             this._translations = this.model.mergeI18nData([translations_json_3.default, translationsProp]);
             this.i18n.init({ ...this._translations });
