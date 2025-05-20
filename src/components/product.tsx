@@ -201,11 +201,18 @@ export default class ShoppingCartProduct extends Module {
     this.checkAvailableProduct(quantity);
   }
 
+  private navigateTo(path: string) {
+    const useHash = location.hash.startsWith('#/') || location.hash.startsWith('#!/');
+    const url = useHash ? `/#!${path}` : path;
+    history.pushState({ path }, "", url);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
+
   private handleProductClick() {
     if (this.product.parentProductId) {
-      window.location.assign(`#!/product/${this.product.stallId}/${this.product.parentProductId}/${this.product.id}`);
+      this.navigateTo(`/product/${this.product.stallId}/${this.product.parentProductId}/${this.product.id}`);
     } else {
-      window.location.assign(`#!/product/${this.product.stallId}/${this.product.id}`);
+      this.navigateTo(`/product/${this.product.stallId}/${this.product.id}`);
     }
   }
 
