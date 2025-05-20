@@ -370,6 +370,7 @@ declare module "@scom/scom-shopping-cart/components/product.tsx" {
         private handleQuantityChanged;
         private handleQuantityClicked;
         updateQuantityFromParent(quantity: number): void;
+        private navigateTo;
         private handleProductClick;
         initTranslations(translations: any): void;
         init(): Promise<void>;
